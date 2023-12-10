@@ -6,7 +6,8 @@ public class MoveOnGround : MonoBehaviour
 {
     [SerializeField] private Transform character;
     [SerializeField] private Transform destination;
-    [SerializeField] private float travelSpeed = 0.1f;
+    [SerializeField] private float travelSpeed = 1f;
+    [SerializeField] private float arrivalDistanceMargin = 0.1f;
     [SerializeField] private bool moveToDestination = false;
     [SerializeField] private GameObject DEBUG_projectedDestinationVisualMarker;
 
@@ -24,7 +25,14 @@ public class MoveOnGround : MonoBehaviour
 
         if (moveToDestination)
         {
-            character.position = Vector3.Lerp(transform.position, actualProjectedDestination, travelSpeed * Time.deltaTime);
+            float distanceToArrival = Vector3.Distance(actualProjectedDestination, character.position);
+
+            if (distanceToArrival > arrivalDistanceMargin)
+            {
+                Vector3 movementDirection = (actualProjectedDestination - character.position).normalized;
+                Vector3 movement = movementDirection * travelSpeed * Time.deltaTime;
+                character.position += movement;
+            }
         }
     }
 }

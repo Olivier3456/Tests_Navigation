@@ -466,8 +466,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   character: {fileID: 748836379}
   destination: {fileID: 1032704145}
-  travelSpeed: 0.1
-  moveToDestination: 0
+  travelSpeed: 1
+  moveToDestination: 1
   DEBUG_projectedDestinationVisualMarker: {fileID: 1559091183}
 --- !u!1 &748836375
 GameObject:
@@ -571,7 +571,6 @@ MonoBehaviour:
   groundDistance: 0.5
   groundDistanceMargin: 0.01
   groundingSpeed: 0.5
-  rotationTimeStep: 0.5
 --- !u!1 &965439820
 GameObject:
   m_ObjectHideFlags: 0

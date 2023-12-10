@@ -21,7 +21,7 @@ public class StickToGroundWithRaycast : MonoBehaviour
     private float distance_To_The_Closest_Point_Of_Actual_Ground_Object = 0;
 
     private Vector3 groundNormalVector;
-
+    
 
     void FixedUpdate()
     {
