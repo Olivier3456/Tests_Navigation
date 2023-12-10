@@ -14,8 +14,6 @@ public class StickToGroundWithRaycast : MonoBehaviour
     [SerializeField] private float groundDistance = 0.5f;
     [SerializeField] private float groundDistanceMargin = 0.1f;
     [SerializeField] private float groundingSpeed = 0.5f;
-    [SerializeField] private float rotationTimeStep = 0.5f;
-
 
     private GameObject actualGroundObject = null;
     private Vector3 closest_Point_Of_Actual_Ground_Object = Vector3.zero;
@@ -36,7 +34,7 @@ public class StickToGroundWithRaycast : MonoBehaviour
             StayAlignedWithGround();
 
             // déplacements dans un second temps :
-            moveOnGround.Move(-vector_To_Ground_Object_Closest_Point, groundNormalVector);
+            moveOnGround.Move(groundNormalVector);
         }
     }
 
@@ -108,14 +106,6 @@ public class StickToGroundWithRaycast : MonoBehaviour
             Debug.Log("No more ground object in the character's trigger zone.");
         }
     }
-
-
-    //WaitForSeconds waitLengthBeforeNextGroundObjectChange = new WaitForSeconds(0.5f);
-    //private IEnumerator WaitBeforeAuthoriseNextGroundObjectChange()
-    //{
-
-    //}
-
 
 
     #region TRIGGER FUNCTIONS

@@ -36,7 +36,7 @@ public class StickToGround : MonoBehaviour
             StayAlignedWithGround();
 
             // déplacements dans un second temps :
-            moveOnGround.Move(-vector_To_Ground_Object_Closest_Point, direction_Vector_To_Ground_Object_Closest_Point);
+            moveOnGround.Move(direction_Vector_To_Ground_Object_Closest_Point);
         }
     }
 
