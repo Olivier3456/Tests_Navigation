@@ -6,78 +6,90 @@ using UnityEngine.TextCore.Text;
 
 public class StickToGround : MonoBehaviour
 {
-    [SerializeField] private MoveOnGround moveOnGround;
+    [SerializeField] private Travel travel;
+    [Space(10)]
+    [SerializeField] private LayerMask groundLayerMask;
+    [Space(10)]
 
     [SerializeField] private float groundDistance = 0.5f;
     [SerializeField] private float groundDistanceMargin = 0.1f;
     [SerializeField] private float groundingSpeed = 0.5f;
-    [SerializeField] private float rotationSpeed = 1f;
-    [SerializeField] private float rotationTimeStep = 0.5f;
 
-    private float rotationTimer = 0;
-    private Vector3 direction_Vector_To_Ground_Object_Closest_Point_For_Actual_Rotation = Vector3.zero;
-
-    private GameObject actual_Ground_Object = null;
+    private GameObject actualGroundObject = null;
     private Vector3 closest_Point_Of_Actual_Ground_Object = Vector3.zero;
 
     private float distance_To_The_Closest_Point_Of_Actual_Ground_Object = 0;
 
-    private Vector3 direction_Vector_To_Ground_Object_Closest_Point;
+    private Vector3 groundNormalVector;
+
+    private bool initialRotation = true;
 
 
-    void Update()
+    void FixedUpdate()
     {
-        if (actual_Ground_Object != null)
+        if (actualGroundObject != null)
         {
             Vector3 vector_To_Ground_Object_Closest_Point = closest_Point_Of_Actual_Ground_Object - transform.position;
-            direction_Vector_To_Ground_Object_Closest_Point = vector_To_Ground_Object_Closest_Point.normalized;
+            groundNormalVector = vector_To_Ground_Object_Closest_Point.normalized;
 
             StayGrounded();
-            StayAlignedWithGround();
 
-            // déplacements dans un second temps :
-            moveOnGround.Move(direction_Vector_To_Ground_Object_Closest_Point);
+            RotateToFaceTheGround();
+
+            travel.Move(groundNormalVector);
         }
     }
-
 
 
     private void StayGrounded()
     {
         if (distance_To_The_Closest_Point_Of_Actual_Ground_Object > groundDistance + groundDistanceMargin)
         {
-            transform.position += direction_Vector_To_Ground_Object_Closest_Point * groundingSpeed * Time.deltaTime;
-
-            //Debug.Log("Character too far from the ground. Grounding character.");
+            transform.position += groundNormalVector * groundingSpeed * Time.deltaTime;
         }
         else if (distance_To_The_Closest_Point_Of_Actual_Ground_Object < groundDistance)
         {
-            transform.position -= direction_Vector_To_Ground_Object_Closest_Point * groundingSpeed * Time.deltaTime;
-
-            //Debug.Log("Character too close to the ground. Elevating character.");
+            transform.position -= groundNormalVector * groundingSpeed * Time.deltaTime;
         }
     }
 
 
-    private void StayAlignedWithGround()
+    private void RotateToFaceTheGround()
     {
-        rotationTimer += Time.deltaTime;
+        RaycastHit hit;
+        Vector3 raycastDirection = (actualGroundObject.transform.position - transform.position).normalized;
+        float maxDistance = 100f;
 
-        if (rotationTimer >= rotationTimeStep)
+        if (Physics.Raycast(transform.position, raycastDirection, out hit, maxDistance, groundLayerMask))
         {
-            rotationTimer = 0;
-            direction_Vector_To_Ground_Object_Closest_Point_For_Actual_Rotation = direction_Vector_To_Ground_Object_Closest_Point;
-        }
+            //Debug.Log("LE RAYCAST A TOUCHE UN OBJET. Normale du point touché: " + hit.normal);
+            groundNormalVector = hit.normal;
 
-        Quaternion targetRotation = Quaternion.LookRotation(direction_Vector_To_Ground_Object_Closest_Point_For_Actual_Rotation, -direction_Vector_To_Ground_Object_Closest_Point_For_Actual_Rotation);
-        float maxDegreesDelta = rotationSpeed * Time.deltaTime;
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, maxDegreesDelta);
+            //Quaternion targetRotation = Quaternion.LookRotation(groundNormalVector, -groundNormalVector);
+            Quaternion targetRotation = Quaternion.FromToRotation(transform.up, groundNormalVector) * transform.rotation;
+
+            if (initialRotation)
+            {
+                transform.rotation = targetRotation;
+                initialRotation = false;
+            }
+            else
+            {
+                float rotationSpeed = 200f;
+                float maxDegreesDelta = rotationSpeed * Time.deltaTime;
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, maxDegreesDelta);
+            }
+        }
+        else
+        {
+            Debug.Log("No Object detected by the raycast. Can't align character with ground.");
+        }
     }
 
 
-    public void Check_If_An_Object_Is_The_New_Ground(Vector3 closestPoint, Transform objectTransform)
+    public void CheckObjectProximity(Vector3 closestPoint, Transform objectTransform)
     {
-        if (objectTransform.gameObject == actual_Ground_Object)
+        if (objectTransform.gameObject == actualGroundObject)
         {
             closest_Point_Of_Actual_Ground_Object = closestPoint;
         }
@@ -89,31 +101,23 @@ public class StickToGround : MonoBehaviour
         {
             closest_Point_Of_Actual_Ground_Object = closestPoint;
             distance_To_The_Closest_Point_Of_Actual_Ground_Object = distance_To_The_Closest_Point_Of_This_Object;
-            actual_Ground_Object = objectTransform.gameObject;
+            actualGroundObject = objectTransform.gameObject;
 
-            Debug.Log("New closest object: " + actual_Ground_Object.name + ", at a distance of " + distance_To_The_Closest_Point_Of_Actual_Ground_Object + ".");
+            Debug.Log("New closest object: " + actualGroundObject.name + ", at a distance of " + distance_To_The_Closest_Point_Of_Actual_Ground_Object + ".");
         }
     }
 
 
     public void Object_Exiting_Proximity_Trigger(GameObject exitingObject)
     {
-        if (exitingObject == actual_Ground_Object)
+        if (exitingObject == actualGroundObject)
         {
-            actual_Ground_Object = null;
+            actualGroundObject = null;
             distance_To_The_Closest_Point_Of_Actual_Ground_Object = 0;
 
-            //Debug.Log("No object is acutally near the caracter.");
+            Debug.Log("No more ground object in the character's trigger zone.");
         }
     }
-
-
-    //WaitForSeconds waitLengthBeforeNextGroundObjectChange = new WaitForSeconds(0.5f);
-    //private IEnumerator WaitBeforeAuthoriseNextGroundObjectChange()
-    //{
-
-    //}
-
 
 
     #region TRIGGER FUNCTIONS
@@ -121,7 +125,7 @@ public class StickToGround : MonoBehaviour
     {
         if (other.gameObject.TryGetComponent<Ground>(out Ground ground))
         {
-            Check_If_An_Object_Is_The_New_Ground(other.ClosestPoint(transform.position), other.transform);
+            CheckObjectProximity(other.ClosestPoint(transform.position), other.transform);
         }
     }
 
@@ -129,7 +133,7 @@ public class StickToGround : MonoBehaviour
     {
         if (other.gameObject.TryGetComponent<Ground>(out Ground ground))
         {
-            Check_If_An_Object_Is_The_New_Ground(other.ClosestPoint(transform.position), other.transform);
+            CheckObjectProximity(other.ClosestPoint(transform.position), other.transform);
         }
     }
 
