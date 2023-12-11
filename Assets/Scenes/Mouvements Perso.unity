@@ -668,7 +668,7 @@ MonoBehaviour:
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 64
-  groundDistance: 0
+  groundDistance: 0.3
   groundDistanceMargin: 0.01
   groundingSpeed: 0.5
   DEBUG_RaycastOritinPos: {fileID: 819230698}
@@ -1428,6 +1428,14 @@ PrefabInstance:
     - target: {fileID: 3622855912704732771, guid: 4004183db030c0f4382f2af6a71eaada, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6684861722064091730, guid: 4004183db030c0f4382f2af6a71eaada, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.42
+      objectReference: {fileID: 0}
+    - target: {fileID: 6684861722064091730, guid: 4004183db030c0f4382f2af6a71eaada, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.14
       objectReference: {fileID: 0}
     - target: {fileID: 6684861722064091730, guid: 4004183db030c0f4382f2af6a71eaada, type: 3}
       propertyPath: m_LocalRotation.w
