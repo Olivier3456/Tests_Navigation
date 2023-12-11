@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.GraphicsBuffer;
 
-public class Travel : MonoBehaviour
+public class Displacements : MonoBehaviour
 {
     [SerializeField] private Transform spiderTransform;
-    [SerializeField] private Transform destinationRotationTransform;
+    [SerializeField] private Transform targetRotationTransform;
     [Space(20)]
     [SerializeField] private Transform destination;
     [Space(20)]
@@ -42,21 +42,24 @@ public class Travel : MonoBehaviour
                 spiderTransform.position += movement;
             }
 
-            RotateTowardsDestination(actualProjectedDestination);
+            RotateTowardsDestination(actualProjectedDestination, groundNormalVector);
         }
     }
 
 
-    private void RotateTowardsDestination(Vector3 actualProjectedDestination)
-    {
+    private void RotateTowardsDestination(Vector3 actualProjectedDestination, Vector3 groundNormalVector)
+    {   
+        // Chat GPT 3.5:
+
         Vector3 relativePosition = actualProjectedDestination - spiderTransform.position;
+        Quaternion rotationToDestination = Quaternion.LookRotation(relativePosition, targetRotationTransform.up);
 
-        
-        Quaternion rotation = Quaternion.LookRotation(relativePosition, destinationRotationTransform.up);
-        destinationRotationTransform.rotation = rotation;
+        // Appliquer la rotation vers la destination
+        targetRotationTransform.rotation = rotationToDestination;
 
-        //destinationRotationTransform.localRotation = new Quaternion(4, 32, 187, 95);
-
+        // Ajuster la rotation pour tenir compte de l'inclinaison du sol
+        Quaternion rotationToGround = Quaternion.FromToRotation(targetRotationTransform.up, groundNormalVector);
+        targetRotationTransform.rotation *= rotationToGround;
     }
 
 

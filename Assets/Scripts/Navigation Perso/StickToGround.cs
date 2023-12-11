@@ -6,7 +6,7 @@ using UnityEngine.TextCore.Text;
 
 public class StickToGround : MonoBehaviour
 {
-    [SerializeField] private Travel travel;
+    [SerializeField] private Displacements displacements;
     [SerializeField] private Transform groundRotationTransform;
     [Space(10)]
     [SerializeField] private LayerMask groundLayerMask;
@@ -40,11 +40,11 @@ public class StickToGround : MonoBehaviour
     {
         if (distance_To_The_Closest_Point_Of_Actual_Ground_Object > groundDistance + groundDistanceMargin)
         {
-            transform.position -= groundNormalVector * groundingSpeed * travel.GetTravelSpeed() * Time.deltaTime;
+            transform.position -= groundNormalVector * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
         }
         else if (distance_To_The_Closest_Point_Of_Actual_Ground_Object < groundDistance)
         {
-            transform.position += groundNormalVector * groundingSpeed * travel.GetTravelSpeed() * Time.deltaTime;
+            transform.position += groundNormalVector * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
         }
     }
 
@@ -52,19 +52,27 @@ public class StickToGround : MonoBehaviour
     {
         Quaternion targetRotation = Quaternion.FromToRotation(groundRotationTransform.up, groundNormal) * groundRotationTransform.rotation;
         float rotationSpeed = 200f;
-        float maxDegreesDelta = rotationSpeed * travel.GetTravelSpeed() * Time.deltaTime;
+        float maxDegreesDelta = rotationSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
         groundRotationTransform.rotation = Quaternion.RotateTowards(groundRotationTransform.rotation, targetRotation, maxDegreesDelta);
     }
 
-
+    public GameObject DEBUG_RaycastOritinPos;
 
     private Vector3 UpdateGroundNormalVector()
     {
         RaycastHit hit;
-        Vector3 raycastDirection = (closest_Point_Of_Actual_Ground_Object - transform.position).normalized;
+
+        // Don't work if ground distance = 0
+        //Vector3 raycastDirection = (closest_Point_Of_Actual_Ground_Object - transform.position).normalized;
+
+        Vector3 raycastDirection = (actualGroundObject.transform.position - transform.position).normalized;
+        Vector3 raycastOriginPosition = transform.position - raycastDirection;
         float maxDistance = 100f;
 
-        if (Physics.Raycast(transform.position, raycastDirection, out hit, maxDistance, groundLayerMask))
+        DEBUG_RaycastOritinPos.transform.position = raycastOriginPosition;
+
+
+        if (Physics.Raycast(raycastOriginPosition, raycastDirection, out hit, maxDistance, groundLayerMask))
         {
             return hit.normal;
         }

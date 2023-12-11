@@ -5,13 +5,13 @@ using UnityEngine;
 public class Spider : MonoBehaviour
 {
     [SerializeField] private StickToGround stickToGround;
-    [SerializeField] private Travel travel;
+    [SerializeField] private Displacements displacements;
 
 
     private void FixedUpdate()
     {
         stickToGround.Proceed();
 
-        travel.Proceed(stickToGround.GetGroundNormalVector());
+        displacements.Proceed(stickToGround.GetGroundNormalVector());
     }
 }
