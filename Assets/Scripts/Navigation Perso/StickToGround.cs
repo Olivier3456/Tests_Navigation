@@ -61,10 +61,6 @@ public class StickToGround : MonoBehaviour
     private Vector3 UpdateGroundNormalVector()
     {
         RaycastHit hit;
-
-        // Don't work if ground distance = 0
-        //Vector3 raycastDirection = (closest_Point_Of_Actual_Ground_Object - transform.position).normalized;
-
         Vector3 raycastDirection = (actualGroundObject.transform.position - transform.position).normalized;
         Vector3 raycastOriginPosition = transform.position - raycastDirection;
         float maxDistance = 100f;
@@ -119,7 +115,7 @@ public class StickToGround : MonoBehaviour
             actualGroundObject = null;
             distance_To_The_Closest_Point_Of_Actual_Ground_Object = 0;
 
-            Debug.Log("No more ground object in the character's trigger zone.");
+            Debug.Log("No more ground object in the spider's trigger zone.");
         }
     }
 

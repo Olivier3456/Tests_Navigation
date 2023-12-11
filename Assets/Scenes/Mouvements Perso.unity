@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.37311953, g: 0.38074014, b: 0.3587274, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -154,6 +154,7 @@ Transform:
   m_Children:
   - {fileID: 1149935728}
   - {fileID: 1072305110}
+  - {fileID: 502974002}
   m_Father: {fileID: 780945214}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &337785081
@@ -172,7 +173,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!108 &337785082
 Light:
   m_ObjectHideFlags: 0
@@ -368,6 +369,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 408379336}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &502974001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 502974002}
+  m_Layer: 0
+  m_Name: Raycast Origin For Ground Detection
+  m_TagString: Untagged
+  m_Icon: {fileID: -5442936267250999957, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &502974002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 502974001}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.32}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 241569119}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &621913132
 GameObject:
   m_ObjectHideFlags: 0
@@ -701,8 +733,15 @@ MonoBehaviour:
   spiderTransform: {fileID: 748836379}
   targetRotationTransform: {fileID: 241569119}
   destination: {fileID: 1032704145}
+  raycastOriginForGroundAnglesDetection: {fileID: 502974002}
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  maxRaycastHitDistanceToAllowPassage: 0.75
+  minRaycastDistanceAllowedToAllowPassage: 0.1
   travelSpeed: 1
   arrivalDistanceMargin: 0.1
+  maxAngleBetweenConsecutiveGroundNormals: 45
   moveToDestination: 1
   DEBUG_projectedDestinationVisualMarker: {fileID: 1559091183}
 --- !u!1 &780945213
@@ -874,7 +913,7 @@ Transform:
   m_GameObject: {fileID: 965439820}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 8.47, z: 7.27}
+  m_LocalPosition: {x: 0, y: 4.028, z: 1.97}
   m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -991,13 +1030,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 975630967}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 6.59, z: 4.818}
+  m_LocalRotation: {x: 0.34377393, y: -0, z: -0, w: 0.9390524}
+  m_LocalPosition: {x: 2.9999998, y: 2.181435, z: 5.235991}
   m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1372850602}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 40.214, y: 0, z: 0}
 --- !u!114 &975630972
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1035,7 +1074,7 @@ Transform:
   m_GameObject: {fileID: 1032704144}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.47, y: 11.088, z: 6.97}
+  m_LocalPosition: {x: -0.07, y: 5.3, z: 4.57}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
