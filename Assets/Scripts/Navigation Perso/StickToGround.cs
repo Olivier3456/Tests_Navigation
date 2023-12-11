@@ -7,10 +7,10 @@ using UnityEngine.TextCore.Text;
 public class StickToGround : MonoBehaviour
 {
     [SerializeField] private Travel travel;
+    [SerializeField] private Transform groundRotationTransform;
     [Space(10)]
     [SerializeField] private LayerMask groundLayerMask;
     [Space(10)]
-
     [SerializeField] private float groundDistance = 0.5f;
     [SerializeField] private float groundDistanceMargin = 0.1f;
     [SerializeField] private float groundingSpeed = 0.5f;
@@ -20,71 +20,67 @@ public class StickToGround : MonoBehaviour
 
     private float distance_To_The_Closest_Point_Of_Actual_Ground_Object = 0;
 
-    private Vector3 groundNormalVector;
-
-    private bool initialRotation = true;
+    Vector3 groundNormalVector = Vector3.zero;
 
 
-    void FixedUpdate()
+    public void Proceed()
     {
         if (actualGroundObject != null)
         {
-            Vector3 vector_To_Ground_Object_Closest_Point = closest_Point_Of_Actual_Ground_Object - transform.position;
-            groundNormalVector = vector_To_Ground_Object_Closest_Point.normalized;
-
-            StayGrounded();
-
-            RotateToFaceTheGround();
-
-            travel.Move(groundNormalVector);
+            groundNormalVector = UpdateGroundNormalVector();
+            PlaceOnGround();
+            RotatesTowardsTheGround(groundNormalVector);
         }
     }
 
 
-    private void StayGrounded()
+
+
+    public void PlaceOnGround()
     {
         if (distance_To_The_Closest_Point_Of_Actual_Ground_Object > groundDistance + groundDistanceMargin)
         {
-            transform.position += groundNormalVector * groundingSpeed * Time.deltaTime;
+            transform.position -= groundNormalVector * groundingSpeed * travel.GetTravelSpeed() * Time.deltaTime;
         }
         else if (distance_To_The_Closest_Point_Of_Actual_Ground_Object < groundDistance)
         {
-            transform.position -= groundNormalVector * groundingSpeed * Time.deltaTime;
+            transform.position += groundNormalVector * groundingSpeed * travel.GetTravelSpeed() * Time.deltaTime;
         }
     }
 
+    private void RotatesTowardsTheGround(Vector3 groundNormal)
+    {
+        Quaternion targetRotation = Quaternion.FromToRotation(groundRotationTransform.up, groundNormal) * groundRotationTransform.rotation;
+        float rotationSpeed = 200f;
+        float maxDegreesDelta = rotationSpeed * travel.GetTravelSpeed() * Time.deltaTime;
+        groundRotationTransform.rotation = Quaternion.RotateTowards(groundRotationTransform.rotation, targetRotation, maxDegreesDelta);
+    }
 
-    private void RotateToFaceTheGround()
+
+
+    private Vector3 UpdateGroundNormalVector()
     {
         RaycastHit hit;
-        Vector3 raycastDirection = (actualGroundObject.transform.position - transform.position).normalized;
+        Vector3 raycastDirection = (closest_Point_Of_Actual_Ground_Object - transform.position).normalized;
         float maxDistance = 100f;
 
         if (Physics.Raycast(transform.position, raycastDirection, out hit, maxDistance, groundLayerMask))
         {
-            //Debug.Log("LE RAYCAST A TOUCHE UN OBJET. Normale du point touché: " + hit.normal);
-            groundNormalVector = hit.normal;
-
-            //Quaternion targetRotation = Quaternion.LookRotation(groundNormalVector, -groundNormalVector);
-            Quaternion targetRotation = Quaternion.FromToRotation(transform.up, groundNormalVector) * transform.rotation;
-
-            if (initialRotation)
-            {
-                transform.rotation = targetRotation;
-                initialRotation = false;
-            }
-            else
-            {
-                float rotationSpeed = 200f;
-                float maxDegreesDelta = rotationSpeed * Time.deltaTime;
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, maxDegreesDelta);
-            }
+            return hit.normal;
         }
         else
         {
-            Debug.Log("No Object detected by the raycast. Can't align character with ground.");
+            Debug.Log("No Object detected by the raycast. Can't align character with ground! Returning last ground normal vector.");
+            return groundNormalVector;
         }
     }
+
+    public Vector3 GetGroundNormalVector()
+    {
+        return groundNormalVector;
+    }
+
+
 
 
     public void CheckObjectProximity(Vector3 closestPoint, Transform objectTransform)
