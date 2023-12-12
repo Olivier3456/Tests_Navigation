@@ -1,48 +1,53 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.UI.Image;
 
 public class Displacements : MonoBehaviour
 {
     [SerializeField] private Transform spiderTransform;
-    [SerializeField] private Transform targetRotationTransform;
+    [SerializeField] private Transform rotationTransform;
+    [SerializeField] private Transform raycastOrigin;
     [Space(20)]
     [SerializeField] private Transform destination;
     [Space(20)]
-    [SerializeField] private Transform raycastOriginForGroundAnglesDetection;
+    //[SerializeField] private Transform raycastOriginForGroundAnglesDetection;
     [SerializeField] private LayerMask groundLayerMask;
-    [SerializeField] private float maxRaycastHitDistanceToAllowPassage = 0.75f;
-    [SerializeField] private float minRaycastDistanceAllowedToAllowPassage = 0.35f;
+    //[SerializeField] private float maxRaycastHitDistanceToAllowPassage = 0.75f;
+    //[SerializeField] private float minRaycastDistanceAllowedToAllowPassage = 0.35f;
     [Space(20)]
     [SerializeField] private float travelSpeed = 1f;
     [SerializeField] private float arrivalDistanceMargin = 0.1f;
-    [SerializeField] private float maxAngleBetweenConsecutiveGroundNormals = 45f;
+    [SerializeField] private float maxAnglesDelta = 45f;
     [SerializeField] private bool moveToDestination = false;
     [Space(20)]
     [SerializeField] private GameObject DEBUG_projectedDestinationVisualMarker;
 
 
-
-
     private Vector3 actualProjectedDestination;
 
-    private Vector3 lastGroundNormal = Vector3.zero;
+    //private GroundDatas lastGroundDatas;
 
 
-    public void Proceed(Vector3 groundNormalVector)
+    public void Proceed(GroundDatas groundDatas)
     {
-        if (DetectTooWideGroundAngles())
+        if (groundDatas.actualGroundObject == null)
+        {
+            Debug.Log("No ground object detected. Spider can't walk.");
+            return;
+        }
+
+        if (DetectTooWideGroundAnglesDelta(groundDatas))
         {
             return;
         }
 
 
-        actualProjectedDestination = destination.position - Vector3.Dot(groundNormalVector, destination.position - spiderTransform.position) * groundNormalVector;
+        actualProjectedDestination = destination.position - Vector3.Dot(groundDatas.actualGroundNormal, destination.position - spiderTransform.position) * groundDatas.actualGroundNormal;
 
-        if (DEBUG_projectedDestinationVisualMarker != null)
-        {
-            DEBUG_projectedDestinationVisualMarker.transform.position = actualProjectedDestination;
-        }
+        DEBUG_projectedDestinationVisualMarker.transform.position = actualProjectedDestination;
+
+        RotateTowardsDestination(actualProjectedDestination, groundDatas.actualGroundNormal);
 
 
         if (moveToDestination)
@@ -55,53 +60,38 @@ public class Displacements : MonoBehaviour
                 Vector3 movement = movementDirection * travelSpeed * Time.deltaTime;
                 spiderTransform.position += movement;
             }
-
-            RotateTowardsDestination(actualProjectedDestination, groundNormalVector);
         }
-
-        lastGroundNormal = groundNormalVector;
     }
 
 
-    private bool DetectTooWideGroundAngles()
+    private Vector3 hitPoint;
+    private bool DetectTooWideGroundAnglesDelta(GroundDatas groundDatas)
     {
-        // Detecting too wide intern angles:
-        //if (lastGroundNormal != Vector3.zero)
-        //{
-        //    float angleBetweenGroundNormalAndLastGroundNormal = Vector3.Angle(groundNormalVector, lastGroundNormal);
-
-        //    if (angleBetweenGroundNormalAndLastGroundNormal > maxAngleBetweenConsecutiveGroundNormals)
-        //    {
-        //        Debug.Log($"Too much angle between two consecutive ground normal: {angleBetweenGroundNormalAndLastGroundNormal}°. Spider can't continueits path.");
-        //        return true;
-        //    }
-        //}
-
+        bool res = false;
 
         RaycastHit hit;
-        float maxDistance = maxRaycastHitDistanceToAllowPassage;
-        Vector3 raycastDirection;
+        float maxDistance = 2f;
 
-        // Detecting too wide extern angles:
-        raycastDirection = -raycastOriginForGroundAnglesDetection.up;
-        if (!Physics.Raycast(raycastOriginForGroundAnglesDetection.position, raycastDirection, out hit, maxDistance, groundLayerMask))
+        if (Physics.Raycast(raycastOrigin.position, raycastOrigin.transform.forward, out hit, maxDistance, groundLayerMask))
         {
-            Debug.Log($"Raycast for extern angles detection has a too high hit distance (more than {maxDistance}m. Spider can't continue its path.");
-            return true;
-        }
+            hitPoint = hit.point;
 
-        // Detecting too wide intern angles:
-        raycastDirection = raycastOriginForGroundAnglesDetection.forward;
-        if (Physics.Raycast(raycastOriginForGroundAnglesDetection.position, raycastDirection, out hit, maxDistance, groundLayerMask))
-        {
-            if (hit.distance < minRaycastDistanceAllowedToAllowPassage)
+            float angleBetweenTheTwoGrounds = Vector3.Angle(groundDatas.actualGroundNormal, hit.normal);
+
+            if (angleBetweenTheTwoGrounds > maxAnglesDelta)
             {
-                Debug.Log($"Raycast for intern angles detection has a too small hit distance (less than {minRaycastDistanceAllowedToAllowPassage}m. Spider can't continue its path.");
-                return true;
+                Debug.Log($"Too wide angle delta ({angleBetweenTheTwoGrounds}°) detected in front of the spider, can't continue walking.");
+                res = true;
             }
         }
+        else
+        {
+            hitPoint = Vector3.zero;
+            Debug.Log("No ground detected in front of the spider, can't continue walking.");
+            res = true;
+        }
 
-        return false;
+        return res;
     }
 
 
@@ -111,14 +101,14 @@ public class Displacements : MonoBehaviour
         // Chat GPT 3.5:
 
         Vector3 relativePosition = actualProjectedDestination - spiderTransform.position;
-        Quaternion rotationToDestination = Quaternion.LookRotation(relativePosition, targetRotationTransform.up);
+        Quaternion rotationToDestination = Quaternion.LookRotation(relativePosition, rotationTransform.up);
 
         // Appliquer la rotation vers la destination
-        targetRotationTransform.rotation = rotationToDestination;
+        rotationTransform.rotation = rotationToDestination;
 
         // Ajuster la rotation pour tenir compte de l'inclinaison du sol
-        Quaternion rotationToGround = Quaternion.FromToRotation(targetRotationTransform.up, groundNormalVector);
-        targetRotationTransform.rotation *= rotationToGround;
+        Quaternion rotationToGround = Quaternion.FromToRotation(rotationTransform.up, groundNormalVector);
+        rotationTransform.rotation *= rotationToGround;
     }
 
 
@@ -131,4 +121,15 @@ public class Displacements : MonoBehaviour
     {
         return moveToDestination;
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (hitPoint != Vector3.zero)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawLine(raycastOrigin.position, hitPoint);
+        }
+    }
+#endif
 }

@@ -4,10 +4,20 @@ using Unity.VisualScripting.Dependencies.Sqlite;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
+
+public struct GroundDatas
+{
+    public GameObject actualGroundObject;
+    public Vector3 actualGroundNormal;
+    public float actualGroundDistance;
+    public Vector3 hitPoint;
+}
+
+
 public class StickToGround : MonoBehaviour
 {
     [SerializeField] private Displacements displacements;
-    [SerializeField] private Transform groundRotationTransform;
+    [SerializeField] private Transform rotationTransform;
     [Space(10)]
     [SerializeField] private LayerMask groundLayerMask;
     [Space(10)]
@@ -15,135 +25,72 @@ public class StickToGround : MonoBehaviour
     [SerializeField] private float groundDistanceMargin = 0.1f;
     [SerializeField] private float groundingSpeed = 0.5f;
 
-    private GameObject actualGroundObject = null;
-    private Vector3 closest_Point_Of_Actual_Ground_Object = Vector3.zero;
-
-    private float distance_To_The_Closest_Point_Of_Actual_Ground_Object = 0;
-
-    Vector3 groundNormalVector = Vector3.zero;
+    public GroundDatas groundDatas;
 
 
     public void Proceed()
     {
-        if (actualGroundObject != null)
+        UpdateGroundDatas();
+
+        if (groundDatas.actualGroundObject != null)
         {
-            groundNormalVector = UpdateGroundNormalVector();
             PlaceOnGround();
-            RotatesTowardsTheGround(groundNormalVector);
         }
     }
-
-
 
 
     public void PlaceOnGround()
     {
-        if (distance_To_The_Closest_Point_Of_Actual_Ground_Object > groundDistance + groundDistanceMargin)
+        if (groundDatas.actualGroundDistance > groundDistance + groundDistanceMargin)
         {
-            transform.position -= groundNormalVector * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
+            transform.position -= groundDatas.actualGroundNormal * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
         }
-        else if (distance_To_The_Closest_Point_Of_Actual_Ground_Object < groundDistance)
+        else if (groundDatas.actualGroundDistance < groundDistance)
         {
-            transform.position += groundNormalVector * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
+            transform.position += groundDatas.actualGroundNormal * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
         }
     }
 
-    private void RotatesTowardsTheGround(Vector3 groundNormal)
-    {
-        Quaternion targetRotation = Quaternion.FromToRotation(groundRotationTransform.up, groundNormal) * groundRotationTransform.rotation;
-        float rotationSpeed = 200f;
-        float maxDegreesDelta = rotationSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
-        groundRotationTransform.rotation = Quaternion.RotateTowards(groundRotationTransform.rotation, targetRotation, maxDegreesDelta);
-    }
 
-    public GameObject DEBUG_RaycastOritinPos;
-
-    private Vector3 UpdateGroundNormalVector()
+    private void UpdateGroundDatas()
     {
         RaycastHit hit;
-        Vector3 raycastDirection = (actualGroundObject.transform.position - transform.position).normalized;
-        Vector3 raycastOriginPosition = transform.position - raycastDirection;
-        float maxDistance = 100f;
-
-        DEBUG_RaycastOritinPos.transform.position = raycastOriginPosition;
-
+        Vector3 raycastDirection = -rotationTransform.up;
+        Vector3 raycastOriginPosition = transform.position;
+        float maxDistance = 10f;
 
         if (Physics.Raycast(raycastOriginPosition, raycastDirection, out hit, maxDistance, groundLayerMask))
         {
-            return hit.normal;
+            groundDatas.actualGroundObject = hit.transform.gameObject;
+            groundDatas.actualGroundNormal = hit.normal;
+            groundDatas.actualGroundDistance = hit.distance;
+            groundDatas.hitPoint = hit.point;
         }
         else
         {
-            Debug.Log("No Object detected by the raycast. Can't align character with ground! Returning last ground normal vector.");
-            return groundNormalVector;
+            groundDatas.actualGroundObject = null;
+            groundDatas.actualGroundNormal = Vector3.zero;
+            groundDatas.actualGroundDistance = 0;
+            groundDatas.hitPoint = Vector3.zero;
+
+            Debug.Log("No ground object detected by the raycast!");
         }
     }
 
-    public Vector3 GetGroundNormalVector()
+    public GroundDatas GetGroundDatas()
     {
-        return groundNormalVector;
+        return groundDatas;
     }
 
 
-
-
-    public void CheckObjectProximity(Vector3 closestPoint, Transform objectTransform)
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
     {
-        if (objectTransform.gameObject == actualGroundObject)
+        if (groundDatas.hitPoint != Vector3.zero)
         {
-            closest_Point_Of_Actual_Ground_Object = closestPoint;
-        }
-
-        float distance_To_The_Closest_Point_Of_This_Object = Vector3.Distance(closestPoint, transform.position);
-        distance_To_The_Closest_Point_Of_Actual_Ground_Object = Vector3.Distance(closest_Point_Of_Actual_Ground_Object, transform.position);
-
-        if (distance_To_The_Closest_Point_Of_This_Object < distance_To_The_Closest_Point_Of_Actual_Ground_Object)
-        {
-            closest_Point_Of_Actual_Ground_Object = closestPoint;
-            distance_To_The_Closest_Point_Of_Actual_Ground_Object = distance_To_The_Closest_Point_Of_This_Object;
-            actualGroundObject = objectTransform.gameObject;
-
-            Debug.Log("New closest object: " + actualGroundObject.name + ", at a distance of " + distance_To_The_Closest_Point_Of_Actual_Ground_Object + ".");
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(rotationTransform.position, groundDatas.hitPoint);
         }
     }
-
-
-    public void Object_Exiting_Proximity_Trigger(GameObject exitingObject)
-    {
-        if (exitingObject == actualGroundObject)
-        {
-            actualGroundObject = null;
-            distance_To_The_Closest_Point_Of_Actual_Ground_Object = 0;
-
-            Debug.Log("No more ground object in the spider's trigger zone.");
-        }
-    }
-
-
-    #region TRIGGER FUNCTIONS
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.gameObject.TryGetComponent<Ground>(out Ground ground))
-        {
-            CheckObjectProximity(other.ClosestPoint(transform.position), other.transform);
-        }
-    }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.gameObject.TryGetComponent<Ground>(out Ground ground))
-        {
-            CheckObjectProximity(other.ClosestPoint(transform.position), other.transform);
-        }
-    }
-
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.gameObject.TryGetComponent<Ground>(out Ground ground))
-        {
-            Object_Exiting_Proximity_Trigger(other.gameObject);
-        }
-    }
-    #endregion
+#endif
 }

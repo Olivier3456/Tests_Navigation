@@ -12,6 +12,6 @@ public class Spider : MonoBehaviour
     {
         stickToGround.Proceed();
 
-        displacements.Proceed(stickToGround.GetGroundNormalVector());
+        displacements.Proceed(stickToGround.GetGroundDatas());
     }
 }
