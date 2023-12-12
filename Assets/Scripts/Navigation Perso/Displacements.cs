@@ -11,10 +11,7 @@ public class Displacements : MonoBehaviour
     [Space(20)]
     [SerializeField] private Transform destination;
     [Space(20)]
-    //[SerializeField] private Transform raycastOriginForGroundAnglesDetection;
     [SerializeField] private LayerMask groundLayerMask;
-    //[SerializeField] private float maxRaycastHitDistanceToAllowPassage = 0.75f;
-    //[SerializeField] private float minRaycastDistanceAllowedToAllowPassage = 0.35f;
     [Space(20)]
     [SerializeField] private float travelSpeed = 1f;
     [SerializeField] private float arrivalDistanceMargin = 0.1f;
@@ -23,10 +20,7 @@ public class Displacements : MonoBehaviour
     [Space(20)]
     [SerializeField] private GameObject DEBUG_projectedDestinationVisualMarker;
 
-
     private Vector3 actualProjectedDestination;
-
-    //private GroundDatas lastGroundDatas;
 
 
     public void Proceed(GroundDatas groundDatas)
@@ -100,15 +94,17 @@ public class Displacements : MonoBehaviour
     {
         // Chat GPT 3.5:
 
+        float rotationSpeed = 10;
+
         Vector3 relativePosition = actualProjectedDestination - spiderTransform.position;
         Quaternion rotationToDestination = Quaternion.LookRotation(relativePosition, rotationTransform.up);
 
-        // Appliquer la rotation vers la destination
-        rotationTransform.rotation = rotationToDestination;
+        // Aligner l'objet vers la destination
+        rotationTransform.rotation = Quaternion.Slerp(rotationTransform.rotation, rotationToDestination, Time.deltaTime * rotationSpeed);
 
         // Ajuster la rotation pour tenir compte de l'inclinaison du sol
-        Quaternion rotationToGround = Quaternion.FromToRotation(rotationTransform.up, groundNormalVector);
-        rotationTransform.rotation *= rotationToGround;
+        Quaternion rotationToGround = Quaternion.FromToRotation(rotationTransform.up, groundNormalVector) * rotationTransform.rotation;
+        rotationTransform.rotation = Quaternion.Slerp(rotationTransform.rotation, rotationToGround, Time.deltaTime * rotationSpeed);
     }
 
 

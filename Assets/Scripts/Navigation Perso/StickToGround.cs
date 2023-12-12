@@ -39,19 +39,6 @@ public class StickToGround : MonoBehaviour
     }
 
 
-    public void PlaceOnGround()
-    {
-        if (groundDatas.actualGroundDistance > groundDistance + groundDistanceMargin)
-        {
-            transform.position -= groundDatas.actualGroundNormal * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
-        }
-        else if (groundDatas.actualGroundDistance < groundDistance)
-        {
-            transform.position += groundDatas.actualGroundNormal * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
-        }
-    }
-
-
     private void UpdateGroundDatas()
     {
         RaycastHit hit;
@@ -76,6 +63,20 @@ public class StickToGround : MonoBehaviour
             Debug.Log("No ground object detected by the raycast!");
         }
     }
+
+    public void PlaceOnGround()
+    {
+        if (groundDatas.actualGroundDistance > groundDistance + groundDistanceMargin)
+        {
+            transform.position -= groundDatas.actualGroundNormal * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
+        }
+        else if (groundDatas.actualGroundDistance < groundDistance)
+        {
+            transform.position += groundDatas.actualGroundNormal * groundingSpeed * displacements.GetTravelSpeed() * Time.deltaTime;
+        }
+    }
+
+
 
     public GroundDatas GetGroundDatas()
     {
