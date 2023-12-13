@@ -64,7 +64,7 @@ public class Displacements : MonoBehaviour
         bool res = false;
 
         RaycastHit hit;
-        float maxDistance = 2f;
+        float maxDistance = 4f;
 
         if (Physics.Raycast(raycastOrigin.position, raycastOrigin.transform.forward, out hit, maxDistance, groundLayerMask))
         {

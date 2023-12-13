@@ -8,7 +8,7 @@ public class Spider : MonoBehaviour
     [SerializeField] private Displacements displacements;
 
 
-    private void FixedUpdate()
+    private void Update()
     {
         stickToGround.Proceed();
 
