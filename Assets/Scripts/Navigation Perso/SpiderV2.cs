@@ -125,7 +125,7 @@ public class SpiderV2 : MonoBehaviour
 
         Vector3 newPosition = triggerTransform.position;
 
-        actualTravelSpeed = Vector3.Distance(lastPosition, newPosition) * Time.deltaTime;
+        actualTravelSpeed = Vector3.Distance(lastPosition, newPosition) / Time.deltaTime;
     }
 
 
