@@ -1341,10 +1341,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1094157281414608144, guid: 27162d6901f1e1f46a79b86016590f53, type: 3}
-      propertyPath: DEBUG_projectedDestinationVisualMarker
-      value: 
-      objectReference: {fileID: 1559091187}
     - target: {fileID: 4721976053939169133, guid: 27162d6901f1e1f46a79b86016590f53, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

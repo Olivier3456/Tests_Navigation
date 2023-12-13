@@ -32,6 +32,8 @@ public class SpiderV2 : MonoBehaviour
 
     private SphereCollider sphereCollider;
 
+    private float actualTravelSpeed = 0;
+
 
     private void Awake()
     {
@@ -42,8 +44,8 @@ public class SpiderV2 : MonoBehaviour
         sphereCollider = triggerTransform.GetComponent<SphereCollider>();
     }
 
-    int frames = 0;
 
+    int frames = 0;
     void Update()
     {
         
@@ -57,7 +59,7 @@ public class SpiderV2 : MonoBehaviour
             if (travelToDestination)
             {
                 Travel();
-                Debug.Log($"Travel. Frame {frames}.");
+                //Debug.Log($"Travel. Frame {frames}.");
             }
 
             RotateVisualTowardsDestination();
@@ -104,6 +106,7 @@ public class SpiderV2 : MonoBehaviour
     {
         if (groundNormal == Vector3.zero)
         {
+            actualTravelSpeed = 0;
             return;
         }
 
@@ -111,12 +114,18 @@ public class SpiderV2 : MonoBehaviour
 
         float distanceToArrival = Vector3.Distance(projectedDestination, triggerTransform.position);
 
+        Vector3 lastPosition = triggerTransform.position;
+
         if (distanceToArrival > arrivalDistanceMargin)
         {
             Vector3 movementDirection = (projectedDestination - triggerTransform.position).normalized;
             Vector3 movement = movementDirection * travelSpeed * Time.deltaTime;
             triggerTransform.position += movement;
         }
+
+        Vector3 newPosition = triggerTransform.position;
+
+        actualTravelSpeed = Vector3.Distance(lastPosition, newPosition) * Time.deltaTime;
     }
 
 
@@ -159,6 +168,11 @@ public class SpiderV2 : MonoBehaviour
             Debug.Log("Raycast haven't hit anything: groundNormalVector set to Vector3.zero");
             return Vector3.zero;
         }
+    }
+
+    public float GetActualTravelSpeed()
+    {
+        return actualTravelSpeed;
     }
 
 
