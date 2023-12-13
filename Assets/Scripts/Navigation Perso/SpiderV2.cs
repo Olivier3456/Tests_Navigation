@@ -27,7 +27,7 @@ public class SpiderV2 : MonoBehaviour
 
     private Vector3 closestGroundPoint = Vector3.zero;
     private float distanceToClosestGroundPoint = 0;
-    private Vector3 directionToGroundClosestPoint;
+    private Vector3 directionToClosestGroundPoint;
     private Vector3 groundNormal;
     private Vector3 projectedDestination;
 
@@ -43,23 +43,31 @@ public class SpiderV2 : MonoBehaviour
         sphereCollider = triggerTransform.GetComponent<SphereCollider>();
     }
 
+    int frames = 0;
 
     void Update()
     {
+        
         if (closestGroundPoint != Vector3.zero)
         {
-            directionToGroundClosestPoint = (closestGroundPoint - triggerTransform.position).normalized;
+            directionToClosestGroundPoint = (closestGroundPoint - triggerTransform.position).normalized;
             groundNormal = GetGroundNormalVector();
-            StayGrounded();
-            RotateVisualTowardsDestination();
-            PlaceVisualOnGround();
 
+            StayGrounded();
+            
             if (travelToDestination)
             {
                 Travel();
+                Debug.Log($"Travel. Frame {frames}.");
             }
+
+            RotateVisualTowardsDestination();
+
+            PlaceVisualOnGround();
         }
 
+        frames++;
+       
         groundNormal = Vector3.zero;
         closestGroundPoint = Vector3.zero;
     }
@@ -69,11 +77,11 @@ public class SpiderV2 : MonoBehaviour
     {
         if (distanceToClosestGroundPoint > groundDistance + groundDistanceMargin)
         {
-            triggerTransform.position += directionToGroundClosestPoint * groundingSpeed * Time.deltaTime;
+            triggerTransform.position += directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
         }
         else if (distanceToClosestGroundPoint < groundDistance)
         {
-            triggerTransform.position -= directionToGroundClosestPoint * groundingSpeed * Time.deltaTime;
+            triggerTransform.position -= directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
         }
     }
 
@@ -125,8 +133,6 @@ public class SpiderV2 : MonoBehaviour
     {
         // Chat GPT 3.5:
 
-        float rotationSpeed = 10;
-
         Vector3 relativePosition = projectedDestination - triggerTransform.position;
         Quaternion rotationToDestination = Quaternion.LookRotation(relativePosition, visualTransform.up);
 
@@ -140,14 +146,20 @@ public class SpiderV2 : MonoBehaviour
 
     private void PlaceVisualOnGround()
     {
-        visualTransform.position = closestGroundPoint;
+        // For the Lerp speed to be more linear when the spider rotates on wall <--> ground angles.
+        Vector3 actualPosition = visualTransform.position;
+        Vector3 targetPosition = closestGroundPoint;
+        float distance = Vector3.Distance(actualPosition, targetPosition);
+        float lerpSpeed = travelSpeed / distance;
+
+        visualTransform.position = Vector3.Lerp(visualTransform.position, closestGroundPoint, Time.deltaTime * lerpSpeed);
     }
 
 
 
     private Vector3 GetGroundNormalVector()
     {
-        if (Physics.Raycast(triggerTransform.position, directionToGroundClosestPoint, out RaycastHit hit, 10f, groundLayerMask))
+        if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, 10f, groundLayerMask))
         {
             return hit.normal;
         }
@@ -167,6 +179,13 @@ public class SpiderV2 : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(triggerTransform.position, sphereCollider.radius);
         }
+        else
+        {
+            visualTransform.position = triggerTransform.position;
+        }
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(triggerTransform.position, groundDistance);
     }
 #endif
 }
