@@ -10,7 +10,6 @@ public class SpiderV2 : MonoBehaviour
     [SerializeField] private Transform visualTransform;
     [Space(20)]
     [SerializeField] private Transform destination;
-    [SerializeField] private Transform DEBUG_projectedDestinationVisualMarker;
     [Space(20)]
     [SerializeField] private LayerMask groundLayerMask;
     [Space(20)]
@@ -96,8 +95,6 @@ public class SpiderV2 : MonoBehaviour
         {
             closestGroundPoint = closestPointOfCollider;
             distanceToClosestGroundPoint = distanceToColliderClosestPoint;
-
-            //Debug.Log("New valid closest ground point detected.");
         }
     }
 
@@ -110,13 +107,7 @@ public class SpiderV2 : MonoBehaviour
             return;
         }
 
-
         projectedDestination = destination.position - Vector3.Dot(groundNormal, destination.position - triggerTransform.position) * groundNormal;
-
-        if (DEBUG_projectedDestinationVisualMarker != null)
-        {
-            DEBUG_projectedDestinationVisualMarker.transform.position = projectedDestination;
-        }
 
         float distanceToArrival = Vector3.Distance(projectedDestination, triggerTransform.position);
 
@@ -178,6 +169,7 @@ public class SpiderV2 : MonoBehaviour
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(triggerTransform.position, sphereCollider.radius);
+            Gizmos.DrawSphere(projectedDestination, 0.1f);
         }
         else
         {
