@@ -129,12 +129,12 @@ public class SpiderV2 : MonoBehaviour
 
 
     private bool canChangeProjectedDestination = true;
-    private IEnumerator WaitAndAuthorizeNextProjectedDestinationChange()
+    private IEnumerator WaitAndAuthorizeNextProjectedDestinationChange(float angleBetweenGroundNormalAndLastGroundNormal)
     {
         canChangeProjectedDestination = false;
 
         float actualTravelSpeedClamped = Mathf.Clamp(actualTravelSpeed, 0.1f, Mathf.Infinity);
-        float angleBetweenGroundNormalAndLastGroundNormal = Vector3.Angle(raycastDatas.groundNormal, lastRaycastDatas.groundNormal);
+        
         float waitLength = (angleBetweenGroundNormalAndLastGroundNormal / actualTravelSpeedClamped) * 0.01f;
 
         Debug.Log($"Waiting to authorize projected destination to change again. angleBetweenGroundNormalAndLastGroundNormal = {angleBetweenGroundNormalAndLastGroundNormal}. Wait length = {waitLength}.");
@@ -154,9 +154,10 @@ public class SpiderV2 : MonoBehaviour
             Vector3 fromGroundToRightPositionAboveTheGround = raycastDatas.hitPoint + (raycastDatas.groundNormal * groundDistance);
             projectedDestination = destination.position - Vector3.Dot(raycastDatas.groundNormal, destination.position - fromGroundToRightPositionAboveTheGround) * raycastDatas.groundNormal;
 
-            if (raycastDatas.groundNormal != lastRaycastDatas.groundNormal)
+            float angleBetweenGroundNormalAndLastGroundNormal = Vector3.Angle(raycastDatas.groundNormal, lastRaycastDatas.groundNormal);
+            if (angleBetweenGroundNormalAndLastGroundNormal > 89f)
             {
-                StartCoroutine(WaitAndAuthorizeNextProjectedDestinationChange());
+                StartCoroutine(WaitAndAuthorizeNextProjectedDestinationChange(angleBetweenGroundNormalAndLastGroundNormal));
             }
         }
 
