@@ -1,11 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor;
+using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.TextCore.Text;
 
 public class SpiderV2 : MonoBehaviour
 {
+    private class RaycastDatas
+    {
+        public Vector3 groundNormal;
+        public Vector3 hitPoint;
+    }
+
     [SerializeField] private Transform triggerTransform;
     [SerializeField] private Transform visualTransform;
     [Space(20)]
@@ -15,6 +23,7 @@ public class SpiderV2 : MonoBehaviour
     [Space(20)]
     [SerializeField] private float groundDistance = 0.5f;
     [SerializeField] private float groundDistanceMargin = 0.1f;
+    [Tooltip("Grounding speed must be higher than travel speed to prevent possible bugs when spider walks on certain ground angles.")]
     [SerializeField] private float groundingSpeed = 0.5f;
     [SerializeField] private float rotationSpeed = 1f;
     [SerializeField] private float rotationTimeStep = 0.5f;
@@ -27,12 +36,16 @@ public class SpiderV2 : MonoBehaviour
     private Vector3 closestGroundPoint = Vector3.zero;
     private float distanceToClosestGroundPoint = 0;
     private Vector3 directionToClosestGroundPoint;
-    private Vector3 groundNormal;
+    private RaycastDatas raycastDatas;
     private Vector3 projectedDestination;
 
     private SphereCollider sphereCollider;
 
     private float actualTravelSpeed = 0;
+
+    private Vector3 lastProjectedDestination;
+
+    private float remainingAngleToFinishRotationToGround = 0;
 
 
     private void Awake()
@@ -42,34 +55,46 @@ public class SpiderV2 : MonoBehaviour
         transform.rotation = Quaternion.identity;
 
         sphereCollider = triggerTransform.GetComponent<SphereCollider>();
+
+        float minFactor = 1.5f;
+        if (groundingSpeed <= travelSpeed * minFactor)
+        {
+            groundingSpeed = travelSpeed * minFactor;
+            Debug.Log($"Grounding speed must be higher than travel speed to prevent possible bugs when spider walks on certain ground angles. Grounding speed has been set to {groundingSpeed}.");
+        }
     }
 
 
     int frames = 0;
     void Update()
     {
-        
         if (closestGroundPoint != Vector3.zero)
         {
             directionToClosestGroundPoint = (closestGroundPoint - triggerTransform.position).normalized;
-            groundNormal = GetGroundNormalVector();
+            raycastDatas = GetRayastDatas();
 
             StayGrounded();
-            
-            if (travelToDestination)
-            {
-                Travel();
-                //Debug.Log($"Travel. Frame {frames}.");
-            }
 
-            RotateVisualTowardsDestination();
+            if (raycastDatas != null)
+            {
+                if (travelToDestination)
+                {
+                    Travel();
+                    //Debug.Log($"Travel. Frame {frames}.");
+                }
+
+                RotateVisualTowardsDestination();
+            }
+            else
+            {
+                travelSpeed = 0;
+            }
 
             PlaceVisualOnGround();
         }
 
         frames++;
-       
-        groundNormal = Vector3.zero;
+
         closestGroundPoint = Vector3.zero;
     }
 
@@ -101,16 +126,46 @@ public class SpiderV2 : MonoBehaviour
     }
 
 
+    private bool canChangeProjectedDestination = true;
+    private IEnumerator WaitAndAuthorizeNextProjectedDestinationChange()
+    {
+        canChangeProjectedDestination = false;
+
+        while (remainingAngleToFinishRotationToGround > 3f)
+        {
+            Debug.Log($"Waiting to authorize projected destination to change again. remainingAngleToFinishRotationToGround = {remainingAngleToFinishRotationToGround}");
+            yield return null;
+        }
+
+        Debug.Log($"DONE waiting to authorize projected destination to change again. remainingAngleToFinishRotationToGround = {remainingAngleToFinishRotationToGround}");
+
+        canChangeProjectedDestination = true;
+    }
+
 
     private void Travel()
     {
-        if (groundNormal == Vector3.zero)
+        // ===========================================================> WIP
+
+        if (canChangeProjectedDestination)
         {
-            actualTravelSpeed = 0;
-            return;
+            Vector3 fromGroundToRightPositionAboveTheGround = raycastDatas.hitPoint + (raycastDatas.groundNormal * groundDistance);
+            projectedDestination = destination.position - Vector3.Dot(raycastDatas.groundNormal, destination.position - fromGroundToRightPositionAboveTheGround) * raycastDatas.groundNormal;
+
+
+            if (projectedDestination != lastProjectedDestination)
+            {
+                Debug.Log("Projected destination changed!");
+                StartCoroutine(WaitAndAuthorizeNextProjectedDestinationChange());
+                lastProjectedDestination = projectedDestination;
+            }
         }
 
-        projectedDestination = destination.position - Vector3.Dot(groundNormal, destination.position - triggerTransform.position) * groundNormal;
+        // ===========================================================
+
+
+
+
 
         float distanceToArrival = Vector3.Distance(projectedDestination, triggerTransform.position);
 
@@ -140,13 +195,17 @@ public class SpiderV2 : MonoBehaviour
         visualTransform.rotation = Quaternion.Slerp(visualTransform.rotation, rotationToDestination, Time.deltaTime * rotationSpeed);
 
         // Ajuster la rotation pour tenir compte de l'inclinaison du sol
-        Quaternion rotationToGround = Quaternion.FromToRotation(visualTransform.up, groundNormal) * visualTransform.rotation;
+        Quaternion rotationToGround = Quaternion.FromToRotation(visualTransform.up, raycastDatas.groundNormal) * visualTransform.rotation;
         visualTransform.rotation = Quaternion.Slerp(visualTransform.rotation, rotationToGround, Time.deltaTime * rotationSpeed);
+
+        remainingAngleToFinishRotationToGround = Quaternion.Angle(visualTransform.rotation, rotationToGround);
+
+        Debug.Log($"remainingAngleToFinishRotationToGround = {remainingAngleToFinishRotationToGround}.");
     }
 
     private void PlaceVisualOnGround()
     {
-        // For the Lerp speed to be more linear when the spider rotates on wall <--> ground angles.
+        // For the Lerp speed to be more linear when the spider rotates on wall <--> ground acute (= inner) angles.
         Vector3 actualPosition = visualTransform.position;
         Vector3 targetPosition = closestGroundPoint;
         float distance = Vector3.Distance(actualPosition, targetPosition);
@@ -157,18 +216,20 @@ public class SpiderV2 : MonoBehaviour
 
 
 
-    private Vector3 GetGroundNormalVector()
+    private RaycastDatas GetRayastDatas()
     {
-        if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, 10f, groundLayerMask))
+        float maxDistance = 10f;
+        if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, maxDistance, groundLayerMask))
         {
-            return hit.normal;
+            return new RaycastDatas() { groundNormal = hit.normal, hitPoint = hit.point };
         }
         else
         {
-            Debug.Log("Raycast haven't hit anything: groundNormalVector set to Vector3.zero");
-            return Vector3.zero;
+            Debug.Log("Raycast haven't hit anything. Return null.");
+            return null;
         }
     }
+
 
     public float GetActualTravelSpeed()
     {
