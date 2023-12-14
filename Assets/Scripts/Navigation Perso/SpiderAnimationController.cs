@@ -5,10 +5,9 @@ using UnityEngine;
 public class SpiderAnimationController : MonoBehaviour
 {
     [SerializeField] private Animator animator;
-    [SerializeField] private SpiderV2 spider;
+    [SerializeField] private Spider spider;
     [SerializeField] private float speedFactor;
    
-
 
     void Update()
     {

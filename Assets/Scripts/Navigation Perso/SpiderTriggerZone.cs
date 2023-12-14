@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TriggerZoneSpiderV2 : MonoBehaviour
+public class SpiderTriggerZone : MonoBehaviour
 {
-    [SerializeField] SpiderV2 spider;
+    [SerializeField] Spider spider;
 
     private void OnTriggerEnter(Collider other)
     {
