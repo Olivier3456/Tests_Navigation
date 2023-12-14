@@ -43,10 +43,9 @@ public class SpiderV2 : MonoBehaviour
 
     private float actualTravelSpeed = 0;
 
-    private Vector3 lastProjectedDestination;
-
-    private float remainingAngleToFinishRotationToGround = 0;
-
+    //private Vector3 lastProjectedDestination;
+    //private float remainingAngleToFinishRotationToGround = 0;
+    private RaycastDatas lastRaycastDatas;
 
     private void Awake()
     {
@@ -62,6 +61,9 @@ public class SpiderV2 : MonoBehaviour
             groundingSpeed = travelSpeed * minFactor;
             Debug.Log($"Grounding speed must be higher than travel speed to prevent possible bugs when spider walks on certain ground angles. Grounding speed has been set to {groundingSpeed}.");
         }
+
+        raycastDatas = new RaycastDatas() { groundNormal = Vector3.zero, hitPoint = Vector3.zero };
+        lastRaycastDatas = new RaycastDatas() { groundNormal = Vector3.zero, hitPoint = Vector3.zero };
     }
 
 
@@ -131,13 +133,15 @@ public class SpiderV2 : MonoBehaviour
     {
         canChangeProjectedDestination = false;
 
-        while (remainingAngleToFinishRotationToGround > 3f)
-        {
-            Debug.Log($"Waiting to authorize projected destination to change again. remainingAngleToFinishRotationToGround = {remainingAngleToFinishRotationToGround}");
-            yield return null;
-        }
+        float actualTravelSpeedClamped = Mathf.Clamp(actualTravelSpeed, 0.1f, Mathf.Infinity);
+        float angleBetweenGroundNormalAndLastGroundNormal = Vector3.Angle(raycastDatas.groundNormal, lastRaycastDatas.groundNormal);
+        float waitLength = (angleBetweenGroundNormalAndLastGroundNormal / actualTravelSpeedClamped) * 0.01f;
 
-        Debug.Log($"DONE waiting to authorize projected destination to change again. remainingAngleToFinishRotationToGround = {remainingAngleToFinishRotationToGround}");
+        Debug.Log($"Waiting to authorize projected destination to change again. angleBetweenGroundNormalAndLastGroundNormal = {angleBetweenGroundNormalAndLastGroundNormal}. Wait length = {waitLength}.");
+
+        yield return new WaitForSeconds(waitLength);
+
+        Debug.Log($"DONE waiting to authorize projected destination to change again.");
 
         canChangeProjectedDestination = true;
     }
@@ -145,26 +149,16 @@ public class SpiderV2 : MonoBehaviour
 
     private void Travel()
     {
-        // ===========================================================> WIP
-
         if (canChangeProjectedDestination)
         {
             Vector3 fromGroundToRightPositionAboveTheGround = raycastDatas.hitPoint + (raycastDatas.groundNormal * groundDistance);
             projectedDestination = destination.position - Vector3.Dot(raycastDatas.groundNormal, destination.position - fromGroundToRightPositionAboveTheGround) * raycastDatas.groundNormal;
 
-
-            if (projectedDestination != lastProjectedDestination)
+            if (raycastDatas.groundNormal != lastRaycastDatas.groundNormal)
             {
-                Debug.Log("Projected destination changed!");
                 StartCoroutine(WaitAndAuthorizeNextProjectedDestinationChange());
-                lastProjectedDestination = projectedDestination;
             }
         }
-
-        // ===========================================================
-
-
-
 
 
         float distanceToArrival = Vector3.Distance(projectedDestination, triggerTransform.position);
@@ -192,15 +186,14 @@ public class SpiderV2 : MonoBehaviour
         Quaternion rotationToDestination = Quaternion.LookRotation(relativePosition, visualTransform.up);
 
         // Aligner l'objet vers la destination
-        visualTransform.rotation = Quaternion.Slerp(visualTransform.rotation, rotationToDestination, Time.deltaTime * rotationSpeed);
+        visualTransform.rotation = Quaternion.Slerp(visualTransform.rotation, rotationToDestination, Time.deltaTime * rotationSpeed * actualTravelSpeed);
 
         // Ajuster la rotation pour tenir compte de l'inclinaison du sol
         Quaternion rotationToGround = Quaternion.FromToRotation(visualTransform.up, raycastDatas.groundNormal) * visualTransform.rotation;
-        visualTransform.rotation = Quaternion.Slerp(visualTransform.rotation, rotationToGround, Time.deltaTime * rotationSpeed);
+        visualTransform.rotation = Quaternion.Slerp(visualTransform.rotation, rotationToGround, Time.deltaTime * rotationSpeed * actualTravelSpeed);
 
-        remainingAngleToFinishRotationToGround = Quaternion.Angle(visualTransform.rotation, rotationToGround);
-
-        Debug.Log($"remainingAngleToFinishRotationToGround = {remainingAngleToFinishRotationToGround}.");
+        //remainingAngleToFinishRotationToGround = Quaternion.Angle(visualTransform.rotation, rotationToGround);
+        //Debug.Log($"remainingAngleToFinishRotationToGround = {remainingAngleToFinishRotationToGround}.");
     }
 
     private void PlaceVisualOnGround()
@@ -221,10 +214,12 @@ public class SpiderV2 : MonoBehaviour
         float maxDistance = 10f;
         if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, maxDistance, groundLayerMask))
         {
+            lastRaycastDatas = raycastDatas;
             return new RaycastDatas() { groundNormal = hit.normal, hitPoint = hit.point };
         }
         else
         {
+            lastRaycastDatas = raycastDatas;
             Debug.Log("Raycast haven't hit anything. Return null.");
             return null;
         }
