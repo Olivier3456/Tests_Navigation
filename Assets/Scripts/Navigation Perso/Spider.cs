@@ -24,18 +24,19 @@ public class Spider : MonoBehaviour
 
     [SerializeField] public Transform triggerTransform;
     [SerializeField] public Transform visualTransform;
+    [SerializeField] public SphereCollider trigger;
     [Space(20)]
     [SerializeField] public Transform destination;
     [Space(20)]
     [SerializeField] public LayerMask groundLayerMask;
     [Space(20)]
-    [SerializeField] public float groundDistance = 0.5f;
-    [SerializeField] public float groundDistanceMargin = 0.1f;
-    [SerializeField] public float rotationSpeed = 1f;
+    [SerializeField] public float groundDistance = 0.25f;
+    [SerializeField] public float groundDistanceMargin = 0.025f;
+    [SerializeField] public float rotationSpeed = 2f;
     [Space(20)]
-    [SerializeField] public bool walk;
+    [SerializeField] public bool travel;
     [SerializeField] public TravelType travelType;
-    [SerializeField] public float travelSpeed = 1;
+    [SerializeField] public float travelSpeed = 0.5f;
     [SerializeField] public float arrivalDistanceMargin = 0.1f;
 
     [HideInInspector] public float groundingSpeed = 0.5f;
@@ -43,18 +44,18 @@ public class Spider : MonoBehaviour
     [HideInInspector] public float distanceToClosestGroundPoint = 0;
     [HideInInspector] public Vector3 directionToClosestGroundPoint;
     [HideInInspector] public RaycastDatas raycastDatas;
-    [HideInInspector] public SphereCollider sphereCollider;
     [HideInInspector] public float actualTravelSpeed = 0;
     [HideInInspector] public RaycastDatas lastRaycastDatas;
     [HideInInspector] public ITravel move;
+    private Walk walk;
+    private WalkToDestination walkToDestination;
+
 
     private void Awake()
     {
         // Reset spider main gameObject position and rotation.
         transform.position = Vector3.zero;
         transform.rotation = Quaternion.identity;
-
-        sphereCollider = triggerTransform.GetComponent<SphereCollider>();
 
         float minFactor = 1.5f;
         if (groundingSpeed <= travelSpeed * minFactor)
@@ -67,23 +68,19 @@ public class Spider : MonoBehaviour
         lastRaycastDatas = new RaycastDatas() { groundNormal = Vector3.zero, hitPoint = Vector3.zero };
 
 
-        if (travelType == TravelType.ToDestination)
-        {
-            move = transform.AddComponent<WalkToDestination>();
-            (move as WalkToDestination).spider = this;
+        walkToDestination = transform.AddComponent<WalkToDestination>();
+        walkToDestination.spider = this;
 
-        }
-        else
-        {
-            move = transform.AddComponent<JustWalk>();
-            (move as JustWalk).spider = this;
-        }
+        walk = transform.AddComponent<Walk>();
+        walk.spider = this;
     }
 
 
     int frames = 0;
     void Update()
     {
+        SwitchMovementTypeIfNeeded();
+
         if (closestGroundPoint != Vector3.zero)
         {
             directionToClosestGroundPoint = (closestGroundPoint - triggerTransform.position).normalized;
@@ -93,19 +90,20 @@ public class Spider : MonoBehaviour
 
             if (raycastDatas != null)
             {
-                if (walk)
+                if (travel)
                 {
                     move.Travel();
-                    //TravelToDestination();
-                    //Debug.Log($"WalkToDestination. Frame {frames}.");
+                }
+                else
+                {
+                    actualTravelSpeed = 0;
                 }
 
                 move.RotateVisual();
-                //RotateVisualTowardsDestination();
             }
             else
             {
-                travelSpeed = 0;
+                actualTravelSpeed = 0;
             }
 
             PlaceVisualOnGround();
@@ -114,6 +112,19 @@ public class Spider : MonoBehaviour
         frames++;
 
         closestGroundPoint = Vector3.zero;
+    }
+
+    private void SwitchMovementTypeIfNeeded()
+    {
+        switch (travelType)
+        {
+            case TravelType.JustWalk:
+                move = walk;
+                break;
+            case TravelType.ToDestination:
+                move = walkToDestination;
+                break;
+        }
     }
 
 
@@ -142,7 +153,7 @@ public class Spider : MonoBehaviour
             distanceToClosestGroundPoint = distanceToColliderClosestPoint;
         }
     }
-    
+
 
     private void PlaceVisualOnGround()
     {
@@ -180,25 +191,26 @@ public class Spider : MonoBehaviour
     }
 
 
-//#if UNITY_EDITOR
-//    private void OnDrawGizmos()
-//    {
-//        if (EditorApplication.isPlaying)
-//        {
-//            Gizmos.color = Color.red;
-//            Gizmos.DrawWireSphere(triggerTransform.position, sphereCollider.radius);
-//            if (move != null && move is WalkToDestination)
-//            {
-//                Gizmos.DrawSphere((move as WalkToDestination).projectedDestination, 0.1f);
-//            }
-//        }
-//        else
-//        {
-//            visualTransform.position = triggerTransform.position;
-//        }
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(triggerTransform.position, trigger.radius);
 
-//        Gizmos.color = Color.blue;
-//        Gizmos.DrawWireSphere(triggerTransform.position, groundDistance);
-//    }
-//#endif
+        if (EditorApplication.isPlaying)
+        {
+            if (move != null && move is WalkToDestination)
+            {
+                Gizmos.DrawSphere((move as WalkToDestination).projectedDestination, 0.1f);
+            }
+        }
+        else
+        {
+            visualTransform.position = triggerTransform.position;
+        }
+
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(triggerTransform.position, groundDistance);
+    }
+#endif
 }

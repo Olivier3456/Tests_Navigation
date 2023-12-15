@@ -53,7 +53,13 @@ public class WalkToDestination : MonoBehaviour, ITravel
 
         // Ajuster la rotation pour tenir compte de l'inclinaison du sol
         Quaternion rotationToGround = Quaternion.FromToRotation(spider.visualTransform.up, spider.raycastDatas.groundNormal) * spider.visualTransform.rotation;
-        spider.visualTransform.rotation = Quaternion.Slerp(spider.visualTransform.rotation, rotationToGround, Time.deltaTime * spider.rotationSpeed * spider.actualTravelSpeed);
+
+        // For the rotation to be at a more constant speed.
+        //float angle = Quaternion.Angle(spider.visualTransform.rotation, rotationToGround);
+        float slerpStatus = Time.deltaTime * spider.rotationSpeed * spider.actualTravelSpeed;
+        //slerpStatus *= 1 / (angle / 360);
+
+        spider.visualTransform.rotation = Quaternion.Slerp(spider.visualTransform.rotation, rotationToGround, slerpStatus);
     }
 
 
