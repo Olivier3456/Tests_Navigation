@@ -53,10 +53,6 @@ public class Spider : MonoBehaviour
 
     private void Awake()
     {
-        // Reset spider main gameObject position and rotation.
-        transform.position = Vector3.zero;
-        transform.rotation = Quaternion.identity;
-
         float minFactor = 1.5f;
         if (groundingSpeed <= travelSpeed * minFactor)
         {
@@ -112,7 +108,21 @@ public class Spider : MonoBehaviour
         frames++;
 
         closestGroundPoint = Vector3.zero;
+
+
+        // DEBUG:
+        if (!IsTurning())
+        {
+            if (move is Walk)
+            {
+                float angle = Random.Range(-90, 90);
+                float length = Random.Range(1, 5);
+
+                Turn(angle, length);
+            }
+        }
     }
+
 
     private void SwitchMovementTypeIfNeeded()
     {
@@ -191,6 +201,33 @@ public class Spider : MonoBehaviour
     }
 
 
+    public void Turn(float angle, float length)
+    {
+        if (move is Walk)
+        {
+            (move as Walk).Turn(angle, length);
+        }
+        else
+        {
+            Debug.Log("Spider is currently in Move To Destination Mode. You can't send it a walk command.");
+        }
+    }
+
+
+    public bool IsTurning()
+    {
+        if (move is Walk)
+        {
+            return (move as Walk).IsTurning();
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
+
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
@@ -206,7 +243,11 @@ public class Spider : MonoBehaviour
         }
         else
         {
+            transform.position = Vector3.zero;
+            transform.rotation = Quaternion.identity;
             visualTransform.position = triggerTransform.position;
+            triggerTransform.rotation = Quaternion.identity;
+            destination.gameObject.SetActive(travelType == TravelType.ToDestination);
         }
 
         Gizmos.color = Color.blue;
