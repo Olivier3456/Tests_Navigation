@@ -67,6 +67,16 @@ public class Walk : MonoBehaviour, ITravel
     }
 
 
+    public void StopTurn()
+    {
+        if (turnCoroutine != null)
+        {
+            StopCoroutine(turnCoroutine);
+            turnCoroutine = null;
+        }
+    }
+
+
     public bool IsTurning()
     {
         return turnCoroutine != null;

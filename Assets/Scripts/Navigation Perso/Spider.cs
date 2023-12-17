@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -51,6 +52,12 @@ public class Spider : MonoBehaviour
     private WalkToDestination walkToDestination;
 
 
+    // ajout
+    [Space(20)]
+    [SerializeField] private bool limitWalkGroundAnglesDelta;
+    [SerializeField] private float maxGroundAnglesDelta = 60;
+
+
     private void Awake()
     {
         float minFactor = 1.5f;
@@ -72,7 +79,7 @@ public class Spider : MonoBehaviour
     }
 
 
-    int frames = 0;
+    private int frames = 0;
     void Update()
     {
         SwitchMovementTypeIfNeeded();
@@ -80,7 +87,7 @@ public class Spider : MonoBehaviour
         if (closestGroundPoint != Vector3.zero)
         {
             directionToClosestGroundPoint = (closestGroundPoint - triggerTransform.position).normalized;
-            raycastDatas = GetRayastDatas();
+            raycastDatas = UpdateRaycastDatas();
 
             StayGrounded();
 
@@ -110,17 +117,32 @@ public class Spider : MonoBehaviour
         closestGroundPoint = Vector3.zero;
 
 
-        // DEBUG:
-        if (!IsTurning())
+        if (limitWalkGroundAnglesDelta)
+        {
+            if (IsGroundAngleDeltaTooHigh())
+            {
+                travel = false;
+                if (move is Walk)
+                {
+                    (move as Walk).StopTurn();
+                }
+            }
+        }
+
+
+
+        // ====================== DEBUG ======================
+        if (!IsTurning() && travel)
         {
             if (move is Walk)
             {
-                float angle = Random.Range(-90, 90);
-                float length = Random.Range(1, 5);
+                float angle = Random.Range(-45, 45);
+                float length = Random.Range(2, 5);
 
                 Turn(angle, length);
             }
         }
+        // ===================================================
     }
 
 
@@ -177,8 +199,7 @@ public class Spider : MonoBehaviour
     }
 
 
-
-    private RaycastDatas GetRayastDatas()
+    private RaycastDatas UpdateRaycastDatas()
     {
         float maxDistance = 10f;
         if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, maxDistance, groundLayerMask))
@@ -224,6 +245,19 @@ public class Spider : MonoBehaviour
         {
             return false;
         }
+    }
+
+
+    private bool IsGroundAngleDeltaTooHigh()
+    {
+        float groundAngleDelta = Vector3.Angle(raycastDatas.groundNormal, lastRaycastDatas.groundNormal);
+
+        if (groundAngleDelta > maxGroundAnglesDelta)
+        {
+            Debug.Log($"Ground angle delta ({groundAngleDelta}°) is wider than maximum allowed ({maxGroundAnglesDelta}°).");
+        }
+
+        return groundAngleDelta > maxGroundAnglesDelta;
     }
 
 

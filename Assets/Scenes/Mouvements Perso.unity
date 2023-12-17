@@ -1114,13 +1114,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1081236199947069461, guid: 27162d6901f1e1f46a79b86016590f53, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1440651369636185071, guid: 27162d6901f1e1f46a79b86016590f53, type: 3}
-      propertyPath: travelType
+      propertyPath: limitWalkGroundAnglesDelta
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3570162291688899322, guid: 27162d6901f1e1f46a79b86016590f53, type: 3}
+      propertyPath: speedFactor
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4721976053939169133, guid: 27162d6901f1e1f46a79b86016590f53, type: 3}
       propertyPath: m_LocalPosition.x
