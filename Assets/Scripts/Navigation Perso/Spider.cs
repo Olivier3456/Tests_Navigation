@@ -52,8 +52,6 @@ public class Spider : MonoBehaviour
     private WalkToDestination walkToDestination;
     private bool initialPlacement = true;
 
-
-    // ajout
     [Space(20)]
     [SerializeField] private bool limitWalkGroundAnglesDelta;
     [SerializeField] private float maxGroundAnglesDelta = 60;
@@ -96,6 +94,7 @@ public class Spider : MonoBehaviour
         if (closestGroundPoint != Vector3.zero)
         {
             directionToClosestGroundPoint = (closestGroundPoint - triggerTransform.position).normalized;
+
             raycastDatas = UpdateRaycastDatas();
 
             StayGrounded();
@@ -127,8 +126,10 @@ public class Spider : MonoBehaviour
 
         if (limitWalkGroundAnglesDelta)
         {
-            if (IsGroundAngleDeltaTooHigh())
+            if (GetGroundAnglesDelta() > maxGroundAnglesDelta)
             {
+                Debug.Log($"Ground angle delta is wider than maximum allowed ({maxGroundAnglesDelta}°).");
+
                 travel = false;
                 if (move is Walk)
                 {
@@ -137,14 +138,14 @@ public class Spider : MonoBehaviour
             }
         }
 
-
+       
 
         // ====================== DEBUG ======================
         //if (!IsTurning() && travel)
         //{
         //    if (move is Walk)
         //    {
-        //        float angle = Random.Range(-45, 45);
+        //        float angle = Random.Range(-30, 30);
         //        float length = Random.Range(2, 5);
 
         //        Turn(angle, length);
@@ -176,11 +177,13 @@ public class Spider : MonoBehaviour
     {
         if (distanceToClosestGroundPoint > groundDistance + groundDistanceMargin)
         {
-            triggerTransform.position += directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
+            //triggerTransform.position += directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
+            triggerTransform.position -= raycastDatas.groundNormal * groundingSpeed * Time.deltaTime;
         }
         else if (distanceToClosestGroundPoint < groundDistance)
         {
-            triggerTransform.position -= directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
+            //triggerTransform.position -= directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
+            triggerTransform.position += raycastDatas.groundNormal * groundingSpeed * Time.deltaTime;
         }
     }
 
@@ -265,16 +268,9 @@ public class Spider : MonoBehaviour
     }
 
 
-    private bool IsGroundAngleDeltaTooHigh()
+    private float GetGroundAnglesDelta()
     {
-        float groundAngleDelta = Vector3.Angle(raycastDatas.groundNormal, lastRaycastDatas.groundNormal);
-
-        if (groundAngleDelta > maxGroundAnglesDelta)
-        {
-            Debug.Log($"Ground angle delta ({groundAngleDelta}°) is wider than maximum allowed ({maxGroundAnglesDelta}°).");
-        }
-
-        return groundAngleDelta > maxGroundAnglesDelta;
+        return Vector3.Angle(raycastDatas.groundNormal, lastRaycastDatas.groundNormal);
     }
 
 
