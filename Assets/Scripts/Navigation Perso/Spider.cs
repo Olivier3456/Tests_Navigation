@@ -50,6 +50,7 @@ public class Spider : MonoBehaviour
     [HideInInspector] public ITravel move;
     private Walk walk;
     private WalkToDestination walkToDestination;
+    private bool initialPlacement = true;
 
 
     // ajout
@@ -76,10 +77,18 @@ public class Spider : MonoBehaviour
 
         walk = transform.AddComponent<Walk>();
         walk.spider = this;
+
+        if (travel)
+        {
+            initialPlacement = false;
+        }
+        else
+        {
+            initialPlacement = true;
+        }
     }
 
 
-    private int frames = 0;
     void Update()
     {
         SwitchMovementTypeIfNeeded();
@@ -109,13 +118,12 @@ public class Spider : MonoBehaviour
                 actualTravelSpeed = 0;
             }
 
-            PlaceVisualOnGround();
+
+            if (travel || initialPlacement)
+            {
+                PlaceVisualOnGround();
+            }
         }
-
-        frames++;
-
-        closestGroundPoint = Vector3.zero;
-
 
         if (limitWalkGroundAnglesDelta)
         {
@@ -132,17 +140,21 @@ public class Spider : MonoBehaviour
 
 
         // ====================== DEBUG ======================
-        if (!IsTurning() && travel)
-        {
-            if (move is Walk)
-            {
-                float angle = Random.Range(-45, 45);
-                float length = Random.Range(2, 5);
+        //if (!IsTurning() && travel)
+        //{
+        //    if (move is Walk)
+        //    {
+        //        float angle = Random.Range(-45, 45);
+        //        float length = Random.Range(2, 5);
 
-                Turn(angle, length);
-            }
-        }
+        //        Turn(angle, length);
+        //    }
+        //}
         // ===================================================
+
+
+
+        closestGroundPoint = Vector3.zero;
     }
 
 
@@ -195,7 +207,12 @@ public class Spider : MonoBehaviour
         float distance = Vector3.Distance(actualPosition, targetPosition);
         float lerpSpeed = travelSpeed / distance;
 
-        visualTransform.position = Vector3.Lerp(visualTransform.position, closestGroundPoint, Time.deltaTime * lerpSpeed);
+        visualTransform.position = Vector3.Lerp(actualPosition, targetPosition, Time.deltaTime * lerpSpeed);
+
+        if (distance < 0.001f)
+        {
+            initialPlacement = false;
+        }
     }
 
 
