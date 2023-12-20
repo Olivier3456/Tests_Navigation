@@ -20,6 +20,9 @@ public class RaycastDatas
 
 public class Spider : MonoBehaviour
 {
+    [Tooltip("The diameter of the spider.")]
+    public float spiderSize = 0.05f;
+
     public enum TravelType { ToDestination, JustWalk }
 
     public Transform triggerTransform;
@@ -28,9 +31,8 @@ public class Spider : MonoBehaviour
     [Space(20)]
     public Transform destination;
     [Space(20)]
-     public LayerMask groundLayerMask;
+    public LayerMask groundLayerMask;
     [Space(20)]
-    public float groundDistance = 0.25f;
     public float groundDistanceMargin = 0.025f;
     public float groundingSpeed = 0.05f;
     public float rotationSpeed = 2f;
@@ -40,7 +42,8 @@ public class Spider : MonoBehaviour
     public float travelSpeed = 0.5f;
     public float arrivalDistanceMargin = 0.1f;
 
-    
+
+    [HideInInspector] public float groundDistance = 0.25f;
     [HideInInspector] public Vector3 closestGroundPoint = Vector3.zero;
     [HideInInspector] public float distanceToClosestGroundPoint = 0;
     [HideInInspector] public Vector3 directionToClosestGroundPoint;
@@ -52,14 +55,15 @@ public class Spider : MonoBehaviour
     private WalkToDestination walkToDestination;
     private bool initialPlacement = true;
 
+
     [Space(20)]
     [SerializeField] private bool limitWalkGroundAnglesDelta;
     [SerializeField] private float maxGroundAnglesDelta = 60;
 
-    
+
     private void Awake()
     {
-        AdaptValuesToScale();
+        AdaptValuesToSpiderSize();
 
         float minFactor = 1.5f;
         if (groundingSpeed <= travelSpeed * minFactor)
@@ -89,14 +93,14 @@ public class Spider : MonoBehaviour
     }
 
 
-    private void AdaptValuesToScale()
+    private void AdaptValuesToSpiderSize()
     {
-        float scaleFactor = trigger.radius * 2;
-        groundDistance *= scaleFactor;
-        groundDistanceMargin *= scaleFactor;
-        groundingSpeed *= scaleFactor;
-        travelSpeed *= scaleFactor;
-        arrivalDistanceMargin *= scaleFactor;
+        trigger.radius = spiderSize * 2;
+        groundDistance *= spiderSize / 2;
+        groundDistanceMargin *= spiderSize;
+        groundingSpeed *= spiderSize;
+        travelSpeed *= spiderSize;
+        arrivalDistanceMargin *= spiderSize;
     }
 
 
@@ -238,7 +242,9 @@ public class Spider : MonoBehaviour
 
         visualTransform.position = Vector3.Lerp(actualPosition, targetPosition, Time.deltaTime * lerpSpeed);
 
-        if (distance < 0.0001f)
+
+        float margin = spiderSize / 50;
+        if (distance < margin)
         {
             initialPlacement = false;
         }
@@ -247,7 +253,7 @@ public class Spider : MonoBehaviour
 
     private RaycastDatas UpdateRaycastDatas()
     {
-        float maxDistance = 1f;
+        float maxDistance = spiderSize * 2;
         if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, maxDistance, groundLayerMask))
         {
             lastRaycastDatas = raycastDatas;
