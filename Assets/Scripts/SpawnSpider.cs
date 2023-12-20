@@ -15,6 +15,7 @@ public class SpawnSpider : MonoBehaviour
 
             if (obj.TryGetComponent(out Spider spider))
             {
+                spider.SetSpiderSize(0.05f);
                 spider.SetPosition(transform.position);
             }
         }

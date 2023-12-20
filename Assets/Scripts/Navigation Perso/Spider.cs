@@ -20,30 +20,32 @@ public class RaycastDatas
 
 public class Spider : MonoBehaviour
 {
-    [Tooltip("The diameter of the spider.")]
-    public float spiderSize = 0.05f;
+    private float spiderSize = 0.05f;
 
     public enum TravelType { ToDestination, JustWalk }
 
     public Transform triggerTransform;
     public Transform visualTransform;
+    [Tooltip("The scale of the model when it measures one meter.")]
+    [SerializeField] private float modelScaleFactor;
+    [SerializeField] private Transform modelTransform;
     public SphereCollider trigger;
     [Space(20)]
     public Transform destination;
     [Space(20)]
+    [Tooltip("The scale factor of the sphere collider that detects ground colliders around the spider")]
+    [Range(2, 10)][SerializeField] private float groundDetectionTriggerScaleFactor;
     public LayerMask groundLayerMask;
     [Space(20)]
-    public float groundDistanceMargin = 0.025f;
-    public float groundingSpeed = 0.05f;
     public float rotationSpeed = 2f;
     [Space(20)]
     public bool travel;
     public TravelType travelType;
     public float travelSpeed = 0.5f;
-    public float arrivalDistanceMargin = 0.1f;
 
 
-    [HideInInspector] public float groundDistance = 0.25f;
+    [HideInInspector] public float arrivalDistanceMargin;
+    [HideInInspector] public float groundDistance;
     [HideInInspector] public Vector3 closestGroundPoint = Vector3.zero;
     [HideInInspector] public float distanceToClosestGroundPoint = 0;
     [HideInInspector] public Vector3 directionToClosestGroundPoint;
@@ -54,6 +56,8 @@ public class Spider : MonoBehaviour
     private Walk walk;
     private WalkToDestination walkToDestination;
     private bool initialPlacement = true;
+    private float groundingSpeed;
+    private float groundDistanceMargin = 0.025f;
 
 
     [Space(20)]
@@ -63,15 +67,6 @@ public class Spider : MonoBehaviour
 
     private void Awake()
     {
-        AdaptValuesToSpiderSize();
-
-        float minFactor = 1.5f;
-        if (groundingSpeed <= travelSpeed * minFactor)
-        {
-            groundingSpeed = travelSpeed * minFactor;
-            Debug.Log($"Grounding speed must be higher than travel speed to prevent possible bugs when spider walks on certain ground angles. Grounding speed has been set to {groundingSpeed}.");
-        }
-
         raycastDatas = new RaycastDatas() { groundNormal = Vector3.zero, hitPoint = Vector3.zero };
         lastRaycastDatas = new RaycastDatas() { groundNormal = Vector3.zero, hitPoint = Vector3.zero };
 
@@ -93,14 +88,17 @@ public class Spider : MonoBehaviour
     }
 
 
-    private void AdaptValuesToSpiderSize()
+    public void SetSpiderSize(float spiderSize)
     {
-        trigger.radius = spiderSize * 2;
-        groundDistance *= spiderSize / 2;
-        groundDistanceMargin *= spiderSize;
-        groundingSpeed *= spiderSize;
         travelSpeed *= spiderSize;
-        arrivalDistanceMargin *= spiderSize;
+        groundDistance = spiderSize / 2;
+        trigger.radius = groundDistance * groundDetectionTriggerScaleFactor;
+        groundingSpeed = travelSpeed * 1.5f;
+        groundDistanceMargin = spiderSize / 20f;
+        arrivalDistanceMargin = spiderSize / 10f;
+
+        float modelScale = modelScaleFactor * spiderSize;
+        modelTransform.localScale = new Vector3(modelScale, modelScale, modelScale);
     }
 
 
@@ -271,6 +269,13 @@ public class Spider : MonoBehaviour
     public float GetActualTravelSpeed()
     {
         return actualTravelSpeed;
+    }
+
+
+    public void ChangeTravelSpeed(float speed)
+    {
+        travelSpeed = speed * spiderSize;
+        groundingSpeed = travelSpeed * 1.5f;
     }
 
 
