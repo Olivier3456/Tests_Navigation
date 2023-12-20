@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.Http.Headers;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
@@ -23,24 +22,25 @@ public class Spider : MonoBehaviour
 {
     public enum TravelType { ToDestination, JustWalk }
 
-    [SerializeField] public Transform triggerTransform;
-    [SerializeField] public Transform visualTransform;
-    [SerializeField] public SphereCollider trigger;
+    public Transform triggerTransform;
+    public Transform visualTransform;
+    public SphereCollider trigger;
     [Space(20)]
-    [SerializeField] public Transform destination;
+    public Transform destination;
     [Space(20)]
-    [SerializeField] public LayerMask groundLayerMask;
+     public LayerMask groundLayerMask;
     [Space(20)]
-    [SerializeField] public float groundDistance = 0.25f;
-    [SerializeField] public float groundDistanceMargin = 0.025f;
-    [SerializeField] public float rotationSpeed = 2f;
+    public float groundDistance = 0.25f;
+    public float groundDistanceMargin = 0.025f;
+    public float groundingSpeed = 0.05f;
+    public float rotationSpeed = 2f;
     [Space(20)]
-    [SerializeField] public bool travel;
-    [SerializeField] public TravelType travelType;
-    [SerializeField] public float travelSpeed = 0.5f;
-    [SerializeField] public float arrivalDistanceMargin = 0.1f;
+    public bool travel;
+    public TravelType travelType;
+    public float travelSpeed = 0.5f;
+    public float arrivalDistanceMargin = 0.1f;
 
-    [HideInInspector] public float groundingSpeed = 0.5f;
+    
     [HideInInspector] public Vector3 closestGroundPoint = Vector3.zero;
     [HideInInspector] public float distanceToClosestGroundPoint = 0;
     [HideInInspector] public Vector3 directionToClosestGroundPoint;
@@ -56,7 +56,7 @@ public class Spider : MonoBehaviour
     [SerializeField] private bool limitWalkGroundAnglesDelta;
     [SerializeField] private float maxGroundAnglesDelta = 60;
 
-
+    
     private void Awake()
     {
         float minFactor = 1.5f;
@@ -138,24 +138,25 @@ public class Spider : MonoBehaviour
             }
         }
 
-       
+
 
         // ====================== DEBUG ======================
-        //if (!IsTurning() && travel)
-        //{
-        //    if (move is Walk)
-        //    {
-        //        float angle = Random.Range(-30, 30);
-        //        float length = Random.Range(2, 5);
+        if (!IsTurning() && travel && raycastDatas != null && closestGroundPoint != Vector3.zero)
+        {
+            if (move is Walk)
+            {
+                float angle = Random.Range(-30, 30);
+                float length = Random.Range(2, 5);
 
-        //        Turn(angle, length);
-        //    }
-        //}
+                Turn(angle, length);
+            }
+        }
         // ===================================================
 
 
 
         closestGroundPoint = Vector3.zero;
+        directionToClosestGroundPoint = Vector3.zero;
     }
 
 
@@ -177,13 +178,25 @@ public class Spider : MonoBehaviour
     {
         if (distanceToClosestGroundPoint > groundDistance + groundDistanceMargin)
         {
-            //triggerTransform.position += directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
-            triggerTransform.position -= raycastDatas.groundNormal * groundingSpeed * Time.deltaTime;
+            if (raycastDatas != null)
+            {
+                triggerTransform.position -= raycastDatas.groundNormal * groundingSpeed * Time.deltaTime;
+            }
+            else
+            {
+                triggerTransform.position += directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
+            }
         }
         else if (distanceToClosestGroundPoint < groundDistance)
         {
-            //triggerTransform.position -= directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
-            triggerTransform.position += raycastDatas.groundNormal * groundingSpeed * Time.deltaTime;
+            if (raycastDatas != null)
+            {
+                triggerTransform.position += raycastDatas.groundNormal * groundingSpeed * Time.deltaTime;
+            }
+            else
+            {
+                triggerTransform.position -= directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
+            }
         }
     }
 
@@ -212,7 +225,7 @@ public class Spider : MonoBehaviour
 
         visualTransform.position = Vector3.Lerp(actualPosition, targetPosition, Time.deltaTime * lerpSpeed);
 
-        if (distance < 0.001f)
+        if (distance < 0.0001f)
         {
             initialPlacement = false;
         }
@@ -221,7 +234,7 @@ public class Spider : MonoBehaviour
 
     private RaycastDatas UpdateRaycastDatas()
     {
-        float maxDistance = 10f;
+        float maxDistance = 1f;
         if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, maxDistance, groundLayerMask))
         {
             lastRaycastDatas = raycastDatas;
@@ -230,7 +243,7 @@ public class Spider : MonoBehaviour
         else
         {
             lastRaycastDatas = raycastDatas;
-            Debug.Log("Raycast haven't hit anything. Return null.");
+            Debug.Log("Raycast haven't hit anything. Returning null.");
             return null;
         }
     }
@@ -239,6 +252,15 @@ public class Spider : MonoBehaviour
     public float GetActualTravelSpeed()
     {
         return actualTravelSpeed;
+    }
+
+
+    public void SetPosition(Vector3 position)
+    {
+        triggerTransform.position = position;
+        visualTransform.position = position;
+
+        //Debug.Log($"Spider's children objects position set to {position}");
     }
 
 

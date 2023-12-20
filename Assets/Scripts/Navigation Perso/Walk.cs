@@ -29,7 +29,7 @@ public class Walk : MonoBehaviour, ITravel
 
         // For the rotation to be at a more constant speed.
         //float angle = Quaternion.Angle(spider.visualTransform.rotation, rotationToGround);
-        float slerpStatus = Time.deltaTime * spider.rotationSpeed * spider.actualTravelSpeed;
+        float slerpStatus = Time.deltaTime * spider.rotationSpeed;
         //slerpStatus *= 1 / (angle / 360);
 
         spider.visualTransform.rotation = Quaternion.Slerp(spider.visualTransform.rotation, rotationToGround, slerpStatus);
