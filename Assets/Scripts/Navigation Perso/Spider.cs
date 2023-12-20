@@ -59,6 +59,8 @@ public class Spider : MonoBehaviour
     
     private void Awake()
     {
+        AdaptValuesToScale();
+
         float minFactor = 1.5f;
         if (groundingSpeed <= travelSpeed * minFactor)
         {
@@ -84,6 +86,17 @@ public class Spider : MonoBehaviour
         {
             initialPlacement = true;
         }
+    }
+
+
+    private void AdaptValuesToScale()
+    {
+        float scaleFactor = trigger.radius * 2;
+        groundDistance *= scaleFactor;
+        groundDistanceMargin *= scaleFactor;
+        groundingSpeed *= scaleFactor;
+        travelSpeed *= scaleFactor;
+        arrivalDistanceMargin *= scaleFactor;
     }
 
 

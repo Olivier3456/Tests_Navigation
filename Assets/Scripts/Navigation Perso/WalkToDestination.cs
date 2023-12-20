@@ -56,10 +56,10 @@ public class WalkToDestination : MonoBehaviour, ITravel
 
         // For the rotation to be at a more constant speed.
         //float angle = Quaternion.Angle(spider.visualTransform.rotation, rotationToGround);
-        float slerpStatus = Time.deltaTime * spider.rotationSpeed * spider.actualTravelSpeed;
-        //slerpStatus *= 1 / (angle / 360);
+        float slerp = Time.deltaTime * spider.rotationSpeed * spider.actualTravelSpeed;
+        //slerp *= 1 / (angle / 360);
 
-        spider.visualTransform.rotation = Quaternion.Slerp(spider.visualTransform.rotation, rotationToGround, slerpStatus);
+        spider.visualTransform.rotation = Quaternion.Slerp(spider.visualTransform.rotation, rotationToGround, slerp);
     }
 
 
