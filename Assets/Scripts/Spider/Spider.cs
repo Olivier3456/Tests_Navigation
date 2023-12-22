@@ -251,7 +251,7 @@ public class Spider : MonoBehaviour
 
     private RaycastDatas UpdateRaycastDatas()
     {
-        float maxDistance = spiderSize * 2;
+         float maxDistance = groundDistance * groundDetectionTriggerScaleFactor;
         if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, maxDistance, groundLayerMask))
         {
             lastRaycastDatas = raycastDatas;
