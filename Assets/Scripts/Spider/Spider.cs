@@ -26,6 +26,9 @@ public class Spider : MonoBehaviour
 
     public Transform triggerTransform;
     public Transform visualTransform;
+    [Space(20)]
+    [SerializeField] private SpiderTriggerZone spiderTriggerZone;
+    [Space(20)]
     [Tooltip("The scale of the model when it measures one meter.")]
     [SerializeField] private float modelScaleFactor;
     [SerializeField] private Transform modelTransform;
@@ -102,9 +105,12 @@ public class Spider : MonoBehaviour
     }
 
 
-    void Update()
+    private void Update()
     {
         SwitchMovementTypeIfNeeded();
+
+        closestGroundPoint = spiderTriggerZone.GetClosestGroundPoint(out distanceToClosestGroundPoint);
+
 
         if (closestGroundPoint != Vector3.zero)
         {
@@ -216,20 +222,6 @@ public class Spider : MonoBehaviour
     }
 
 
-    public void UpdateClosestGroundPoint(Vector3 closestPointOfCollider)
-    {
-        distanceToClosestGroundPoint = Vector3.Distance(closestGroundPoint, triggerTransform.position);
-
-        float distanceToColliderClosestPoint = Vector3.Distance(closestPointOfCollider, triggerTransform.position);
-
-        if (distanceToColliderClosestPoint < distanceToClosestGroundPoint)
-        {
-            closestGroundPoint = closestPointOfCollider;
-            distanceToClosestGroundPoint = distanceToColliderClosestPoint;
-        }
-    }
-
-
     private void PlaceVisualOnGround()
     {
         // For the Lerp speed to be more linear when the spider rotates on wall <--> ground acute (= inner) angles.
@@ -251,7 +243,7 @@ public class Spider : MonoBehaviour
 
     private RaycastDatas UpdateRaycastDatas()
     {
-         float maxDistance = groundDistance * groundDetectionTriggerScaleFactor;
+        float maxDistance = groundDistance * groundDetectionTriggerScaleFactor;
         if (Physics.Raycast(triggerTransform.position, directionToClosestGroundPoint, out RaycastHit hit, maxDistance, groundLayerMask))
         {
             lastRaycastDatas = raycastDatas;

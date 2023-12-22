@@ -26,19 +26,4 @@ public class SpawnSpider : MonoBehaviour
             spider.SetPosition(transform.position);
         }
     }
-
-    //void Update()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.Space))
-
-    //    {
-    //        GameObject obj = Instantiate(prefab, Vector3.zero, Quaternion.identity);
-
-    //        if (obj.TryGetComponent(out Spider spider))
-    //        {
-    //            spider.SetSpiderSize(0.05f);
-    //            spider.SetPosition(transform.position);
-    //        }
-    //    }
-    //}
 }

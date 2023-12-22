@@ -113,6 +113,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   triggerTransform: {fileID: 7312737910403620520}
   visualTransform: {fileID: 5182655187727130690}
+  spiderTriggerZone: {fileID: 8781680290572246207}
   modelScaleFactor: 30
   modelTransform: {fileID: 7876915023808841737}
   trigger: {fileID: 5896646214352649028}
@@ -216,6 +217,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spider: {fileID: 1440651369636185071}
+  sphereCollider: {fileID: 5896646214352649028}
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  maxColliders: 4
 --- !u!54 &1401876645976408144
 Rigidbody:
   m_ObjectHideFlags: 0
