@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 
 public interface ITravel
 {
     public void Travel();
-    public void RotateVisual();
+    //public void RotateVisualTransform();
 }
 
 public class RaycastDatas
@@ -42,7 +44,6 @@ public class Spider : MonoBehaviour
     [Space(20)]
     public float rotationSpeed = 2f;
     [Space(20)]
-    public bool travel;
     public TravelType travelType;
     public float travelSpeed = 0.5f;
 
@@ -59,13 +60,70 @@ public class Spider : MonoBehaviour
     private Walk walk;
     private WalkToDestination walkToDestination;
     private bool initialPlacement = true;
+    private bool initialRotation = true;
     private float groundingSpeed;
     private float groundDistanceMargin = 0.025f;
+    private float initialAngle;
 
 
     [Space(20)]
     [SerializeField] private bool limitWalkGroundAnglesDelta;
     [SerializeField] private float maxGroundAnglesDelta = 60;
+
+
+    // TODO: angle when speed != 0.
+    public void SetSpiderValues(float size, Vector3 position, float angle, float speed)
+    {
+        initialAngle = angle;
+
+        SetSpiderSize(size);
+        SetPosition(position);
+        SetTravelSpeed(speed);
+
+        if (travelSpeed != 0)
+        {
+            initialPlacement = false;
+            //initialRotation = false;
+        }
+        else
+        {
+            initialPlacement = true;
+            //initialRotation = true;
+        }
+    }
+
+    private void SetSpiderSize(float spiderSize)
+    {
+        travelSpeed *= spiderSize;
+        groundDistance = spiderSize / 2;
+        trigger.radius = groundDistance * groundDetectionTriggerScaleFactor;
+        groundingSpeed = travelSpeed * 1.5f;
+        groundDistanceMargin = spiderSize / 20f;
+        arrivalDistanceMargin = spiderSize / 10f;
+
+        float modelScale = modelScaleFactor * spiderSize;
+        modelTransform.localScale = new Vector3(modelScale, modelScale, modelScale);
+    }
+    private void SetPosition(Vector3 position)
+    {
+        triggerTransform.position = position;
+        visualTransform.position = position;
+
+        //Debug.Log($"Spider's children objects position set to {position}");
+    }
+    public void SetTravelSpeed(float speed)
+    {
+        travelSpeed = speed * spiderSize;
+        groundingSpeed = travelSpeed * 1.5f;
+
+        if (travelSpeed == 0)
+        {
+            if (move is Walk)
+            {
+                (move as Walk).StopTurn();
+            }
+        }
+    }
 
 
     private void Awake()
@@ -79,29 +137,6 @@ public class Spider : MonoBehaviour
 
         walk = transform.AddComponent<Walk>();
         walk.spider = this;
-
-        if (travel)
-        {
-            initialPlacement = false;
-        }
-        else
-        {
-            initialPlacement = true;
-        }
-    }
-
-
-    public void SetSpiderSize(float spiderSize)
-    {
-        travelSpeed *= spiderSize;
-        groundDistance = spiderSize / 2;
-        trigger.radius = groundDistance * groundDetectionTriggerScaleFactor;
-        groundingSpeed = travelSpeed * 1.5f;
-        groundDistanceMargin = spiderSize / 20f;
-        arrivalDistanceMargin = spiderSize / 10f;
-
-        float modelScale = modelScaleFactor * spiderSize;
-        modelTransform.localScale = new Vector3(modelScale, modelScale, modelScale);
     }
 
 
@@ -118,30 +153,35 @@ public class Spider : MonoBehaviour
 
             raycastDatas = UpdateRaycastDatas();
 
-            StayGrounded();
+            TriggerTransformStayGrounded();
 
             if (raycastDatas != null)
             {
-                if (travel)
+                if (travelSpeed != 0)
                 {
                     move.Travel();
+                    RotateVisualTransform();
                 }
                 else
                 {
                     actualTravelSpeed = 0;
-                }
 
-                move.RotateVisual();
+                    if (initialRotation)
+                    {
+                        RotateVisualTransform();
+                    }
+                }
             }
             else
             {
+                travelSpeed = 0;
                 actualTravelSpeed = 0;
             }
 
 
-            if (travel || initialPlacement)
+            if (travelSpeed != 0 || initialPlacement)
             {
-                PlaceVisualOnGround();
+                PlaceVisualTransformOnGround();
             }
         }
 
@@ -151,7 +191,7 @@ public class Spider : MonoBehaviour
             {
                 Debug.Log($"Ground angle delta is wider than maximum allowed ({maxGroundAnglesDelta}°).");
 
-                travel = false;
+                travelSpeed = 0;
                 if (move is Walk)
                 {
                     (move as Walk).StopTurn();
@@ -162,16 +202,18 @@ public class Spider : MonoBehaviour
 
 
         // ====================== DEBUG ======================
-        if (!IsTurning() && travel && raycastDatas != null && closestGroundPoint != Vector3.zero)
-        {
-            if (move is Walk)
-            {
-                float angle = Random.Range(-30, 30);
-                float length = Random.Range(2, 5);
+        //if (!IsTurning() && travelSpeed != 0 && raycastDatas != null && closestGroundPoint != Vector3.zero)
+        //{
+        //    if (move is Walk)
+        //    {
+        //        float angle = Random.Range(-30, 30);
+        //        float length = Random.Range(2, 5);
 
-                Turn(angle, length);
-            }
-        }
+        //        Turn(angle, length);
+        //    }
+
+        //    SetTravelSpeed(Random.Range(0.5f, 2));
+        //}
         // ===================================================
 
 
@@ -195,7 +237,7 @@ public class Spider : MonoBehaviour
     }
 
 
-    private void StayGrounded()
+    private void TriggerTransformStayGrounded()
     {
         if (distanceToClosestGroundPoint > groundDistance + groundDistanceMargin)
         {
@@ -222,21 +264,47 @@ public class Spider : MonoBehaviour
     }
 
 
-    private void PlaceVisualOnGround()
+    private void PlaceVisualTransformOnGround()
     {
         // For the Lerp speed to be more linear when the spider rotates on wall <--> ground acute (= inner) angles.
         Vector3 actualPosition = visualTransform.position;
         Vector3 targetPosition = closestGroundPoint;
         float distance = Vector3.Distance(actualPosition, targetPosition);
-        float lerpSpeed = travelSpeed / distance;
+        float lerp = travelSpeed / distance;
 
-        visualTransform.position = Vector3.Lerp(actualPosition, targetPosition, Time.deltaTime * lerpSpeed);
-
-
-        float margin = spiderSize / 50;
-        if (distance < margin)
+        if (initialPlacement)
         {
+            visualTransform.position = targetPosition;
             initialPlacement = false;
+        }
+        else
+        {
+            visualTransform.position = Vector3.Lerp(actualPosition, targetPosition, Time.deltaTime * lerp);
+        }
+    }
+
+
+    public void RotateVisualTransform()
+    {
+        // Ajuster la rotation pour tenir compte de l'inclinaison du sol.
+        Quaternion rotationToGround = Quaternion.FromToRotation(visualTransform.up, raycastDatas.groundNormal) * visualTransform.rotation;
+
+        // For the rotation to be at a more constant speed.
+        //float angle = Quaternion.Angle(spider.visualTransform.rotation, rotationToGround);
+        float slerp = Time.deltaTime * rotationSpeed;
+        //slerp *= 1 / (angle / 360);
+
+
+        if (initialRotation)
+        {
+            visualTransform.rotation = rotationToGround;
+            visualTransform.rotation *= Quaternion.AngleAxis(initialAngle, Vector3.up);
+
+            initialRotation = false;
+        }
+        else
+        {
+            visualTransform.rotation = Quaternion.Slerp(visualTransform.rotation, rotationToGround, slerp);
         }
     }
 
@@ -261,22 +329,6 @@ public class Spider : MonoBehaviour
     public float GetActualTravelSpeed()
     {
         return actualTravelSpeed;
-    }
-
-
-    public void ChangeTravelSpeed(float speed)
-    {
-        travelSpeed = speed * spiderSize;
-        groundingSpeed = travelSpeed * 1.5f;
-    }
-
-
-    public void SetPosition(Vector3 position)
-    {
-        triggerTransform.position = position;
-        visualTransform.position = position;
-
-        //Debug.Log($"Spider's children objects position set to {position}");
     }
 
 

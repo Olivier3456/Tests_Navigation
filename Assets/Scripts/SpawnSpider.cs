@@ -22,8 +22,7 @@ public class SpawnSpider : MonoBehaviour
 
         if (go.TryGetComponent(out Spider spider))
         {
-            spider.SetSpiderSize(0.05f);
-            spider.SetPosition(transform.position);
+            spider.SetSpiderValues(0.05f, transform.position, 90f, 1f);
         }
     }
 }

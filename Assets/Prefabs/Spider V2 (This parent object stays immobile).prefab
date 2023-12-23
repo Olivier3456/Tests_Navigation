@@ -123,9 +123,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 115
   rotationSpeed: 2
-  travel: 1
   travelType: 1
-  travelSpeed: 1
+  travelSpeed: 0
   arrivalDistanceMargin: 0.1
   groundDistance: 0.25
   closestGroundPoint: {x: 0, y: 0, z: 0}

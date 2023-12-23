@@ -21,21 +21,8 @@ public class Walk : MonoBehaviour, ITravel
         spider.actualTravelSpeed = Vector3.Distance(lastPosition, newPosition) / Time.deltaTime;
     }
 
-
-    public void RotateVisual()
-    {
-        // Ajuster la rotation pour tenir compte de l'inclinaison du sol.
-        Quaternion rotationToGround = Quaternion.FromToRotation(spider.visualTransform.up, spider.raycastDatas.groundNormal) * spider.visualTransform.rotation;
-
-        // For the rotation to be at a more constant speed.
-        //float angle = Quaternion.Angle(spider.visualTransform.rotation, rotationToGround);
-        float slerp = Time.deltaTime * spider.rotationSpeed;
-        //slerp *= 1 / (angle / 360);
-
-        spider.visualTransform.rotation = Quaternion.Slerp(spider.visualTransform.rotation, rotationToGround, slerp);
-    }
-
-
+       
+    private IEnumerator turnCoroutine;
     public void Turn(float angle, float length)
     {
         if (turnCoroutine != null)
@@ -49,18 +36,16 @@ public class Walk : MonoBehaviour, ITravel
     }
 
 
-
-    private IEnumerator turnCoroutine;
     private IEnumerator TurnCoroutine(float angle, float length)
     {
-        float rotationStep = 0;
+        float step = 0;
 
-        while (rotationStep < 1)
+        while (step < 1)
         {
             float turningRotationAngleForThatFrame = Time.deltaTime * angle;
             spider.visualTransform.rotation *= Quaternion.AngleAxis(turningRotationAngleForThatFrame, Vector3.up);
             yield return null;
-            rotationStep += Time.deltaTime / length;
+            step += Time.deltaTime / length;
         }
 
         turnCoroutine = null;
