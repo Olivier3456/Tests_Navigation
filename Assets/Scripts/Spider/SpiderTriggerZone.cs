@@ -34,7 +34,7 @@ public class SpiderTriggerZone : MonoBehaviour
 
         Vector3 closestPointOfAllColliders = GetClosestPoint(closestPoints, out distance);
 
-        //Debug.Log("Closest point of all colliders: " + closestPointOfAllColliders); >> OK
+        //Debug.Log("closest point: " + closestPointOfAllColliders);
 
         return closestPointOfAllColliders;
     }

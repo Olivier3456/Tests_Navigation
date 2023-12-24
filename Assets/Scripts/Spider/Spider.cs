@@ -59,8 +59,9 @@ public class Spider : MonoBehaviour
     [HideInInspector] public ITravel move;
     private Walk walk;
     private WalkToDestination walkToDestination;
-    private bool initialPlacement = true;
-    private bool initialRotation = true;
+    private bool initialVisualTransformPlacement = true;
+    private bool initialVisualTransformRotation = true;
+    private bool initialTriggerTransformPlacement = true;
     private float groundingSpeed;
     private float groundDistanceMargin = 0.025f;
     private float initialAngle;
@@ -80,16 +81,16 @@ public class Spider : MonoBehaviour
         SetPosition(position);
         SetTravelSpeed(speed);
 
-        if (travelSpeed != 0)
-        {
-            initialPlacement = false;
-            //initialRotation = false;
-        }
-        else
-        {
-            initialPlacement = true;
-            //initialRotation = true;
-        }
+        //if (travelSpeed != 0)
+        //{
+        //    initialVisualTransformPlacement = false;
+        //    //initialVisualTransformRotation = false;
+        //}
+        //else
+        //{
+        //    initialVisualTransformPlacement = true;
+        //    //initialVisualTransformRotation = true;
+        //}
     }
 
     private void SetSpiderSize(float spiderSize)
@@ -166,7 +167,7 @@ public class Spider : MonoBehaviour
                 {
                     actualTravelSpeed = 0;
 
-                    if (initialRotation)
+                    if (initialVisualTransformRotation)
                     {
                         RotateVisualTransform();
                     }
@@ -179,7 +180,7 @@ public class Spider : MonoBehaviour
             }
 
 
-            if (travelSpeed != 0 || initialPlacement)
+            if (travelSpeed != 0 || initialVisualTransformPlacement)
             {
                 PlaceVisualTransformOnGround();
             }
@@ -239,6 +240,16 @@ public class Spider : MonoBehaviour
 
     private void TriggerTransformStayGrounded()
     {
+        if (initialTriggerTransformPlacement)
+        {
+            triggerTransform.position += directionToClosestGroundPoint * (distanceToClosestGroundPoint - groundDistance);
+            initialTriggerTransformPlacement = false;
+
+            Debug.Log("Initial trigger transform placement done.");
+
+            return;
+        }
+
         if (distanceToClosestGroundPoint > groundDistance + groundDistanceMargin)
         {
             if (raycastDatas != null)
@@ -272,10 +283,12 @@ public class Spider : MonoBehaviour
         float distance = Vector3.Distance(actualPosition, targetPosition);
         float lerp = travelSpeed / distance;
 
-        if (initialPlacement)
+        if (initialVisualTransformPlacement)
         {
             visualTransform.position = targetPosition;
-            initialPlacement = false;
+            initialVisualTransformPlacement = false;
+
+            //Debug.Log("Initial visual transform placement done.");
         }
         else
         {
@@ -295,12 +308,12 @@ public class Spider : MonoBehaviour
         //slerp *= 1 / (angle / 360);
 
 
-        if (initialRotation)
+        if (initialVisualTransformRotation)
         {
             visualTransform.rotation = rotationToGround;
             visualTransform.rotation *= Quaternion.AngleAxis(initialAngle, Vector3.up);
 
-            initialRotation = false;
+            initialVisualTransformRotation = false;
         }
         else
         {
