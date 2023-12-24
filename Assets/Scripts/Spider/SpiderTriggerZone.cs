@@ -13,8 +13,48 @@ public class SpiderTriggerZone : MonoBehaviour
 
     [SerializeField] private int maxColliders = 4;
 
+    [SerializeField] private float maxIterationsForExtraChecks = 5f;
+    [SerializeField] private float radiusFactorForExtraChecks = 2f;
+
+    private bool firstCheck = true;
 
     public Vector3 GetClosestGroundPoint(out float distance)
+    {
+        Vector3 closestPointOfAllColliders = Vector3.zero;
+        distance = Mathf.Infinity;
+
+
+        if (firstCheck)
+        {
+            firstCheck = false;
+            float initialSphereColliderRadius = sphereCollider.radius;
+            int iteration = 0;
+
+            while (closestPointOfAllColliders == Vector3.zero && iteration <= maxIterationsForExtraChecks)
+            {
+                iteration++;
+
+                if (iteration > 1)
+                {
+                    sphereCollider.radius *= radiusFactorForExtraChecks;
+                    Debug.Log($"No collider in range: extra check necessary. Iteration {iteration}. Sphere radius = {sphereCollider.radius}m.");
+                }
+
+                closestPointOfAllColliders = GetClosestGroundPoint_Iteration(out distance);
+            }
+
+            sphereCollider.radius = initialSphereColliderRadius;
+        }
+        else
+        {
+            closestPointOfAllColliders = GetClosestGroundPoint_Iteration(out distance);
+        }
+
+        return closestPointOfAllColliders;
+    }
+
+
+    private Vector3 GetClosestGroundPoint_Iteration(out float distance)
     {
         Collider[] hitColliders = new Collider[maxColliders];
         int numColliders = Physics.OverlapSphereNonAlloc(transform.position, sphereCollider.radius, hitColliders, groundLayerMask);
@@ -33,8 +73,6 @@ public class SpiderTriggerZone : MonoBehaviour
 
 
         Vector3 closestPointOfAllColliders = GetClosestPoint(closestPoints, out distance);
-
-        //Debug.Log("closest point: " + closestPointOfAllColliders);
 
         return closestPointOfAllColliders;
     }
@@ -79,7 +117,7 @@ public class SpiderTriggerZone : MonoBehaviour
                 closestPoint = point;
             }
         }
-        
+
         return closestPoint;
     }
 }

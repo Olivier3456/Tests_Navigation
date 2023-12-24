@@ -22,7 +22,7 @@ public class SpawnSpider : MonoBehaviour
 
         if (go.TryGetComponent(out Spider spider))
         {
-            spider.SetSpiderValues(0.05f, transform.position, 90f, 1f);
+            spider.SetSpiderValues(0.05f, transform.position, 270f, 1f);
         }
     }
 }

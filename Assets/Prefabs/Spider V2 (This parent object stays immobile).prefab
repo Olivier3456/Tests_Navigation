@@ -221,6 +221,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   maxColliders: 4
+  maxIterationsForExtraChecks: 5
+  radiusFactorForExtraChecks: 2
 --- !u!54 &1401876645976408144
 Rigidbody:
   m_ObjectHideFlags: 0

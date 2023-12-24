@@ -38,8 +38,6 @@ public class Spider : MonoBehaviour
     [Space(20)]
     public Transform destination;
     [Space(20)]
-    [Tooltip("The scale factor of the sphere collider that detects ground colliders around the spider")]
-    [Range(2, 10)][SerializeField] private float groundDetectionTriggerScaleFactor;
     public LayerMask groundLayerMask;
     [Space(20)]
     public float rotationSpeed = 2f;
@@ -59,12 +57,16 @@ public class Spider : MonoBehaviour
     [HideInInspector] public ITravel move;
     private Walk walk;
     private WalkToDestination walkToDestination;
+
     private bool initialVisualTransformPlacement = true;
     private bool initialVisualTransformRotation = true;
     private bool initialTriggerTransformPlacement = true;
+    private bool firstRaycast = true;
+
     private float groundingSpeed;
     private float groundDistanceMargin = 0.025f;
     private float initialAngle;
+    private float groundDetectionTriggerScaleFactor = 2f;
 
 
     [Space(20)]
@@ -80,17 +82,6 @@ public class Spider : MonoBehaviour
         SetSpiderSize(size);
         SetPosition(position);
         SetTravelSpeed(speed);
-
-        //if (travelSpeed != 0)
-        //{
-        //    initialVisualTransformPlacement = false;
-        //    //initialVisualTransformRotation = false;
-        //}
-        //else
-        //{
-        //    initialVisualTransformPlacement = true;
-        //    //initialVisualTransformRotation = true;
-        //}
     }
 
     private void SetSpiderSize(float spiderSize)
@@ -109,8 +100,6 @@ public class Spider : MonoBehaviour
     {
         triggerTransform.position = position;
         visualTransform.position = position;
-
-        //Debug.Log($"Spider's children objects position set to {position}");
     }
     public void SetTravelSpeed(float speed)
     {
@@ -175,16 +164,23 @@ public class Spider : MonoBehaviour
             }
             else
             {
-                travelSpeed = 0;
+                if (!firstRaycast)   // Avoid travelSpeed to be set as 0 if the spider is spawned farer of the ground than raycast limit.
+                {
+                    travelSpeed = 0;
+                }
+
                 actualTravelSpeed = 0;
             }
 
+            firstRaycast = false;
 
             if (travelSpeed != 0 || initialVisualTransformPlacement)
             {
                 PlaceVisualTransformOnGround();
             }
         }
+
+
 
         if (limitWalkGroundAnglesDelta)
         {
