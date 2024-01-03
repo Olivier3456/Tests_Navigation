@@ -129,6 +129,7 @@ MonoBehaviour:
   closestGroundPoint: {x: 0, y: 0, z: 0}
   distanceToClosestGroundPoint: 0
   directionToClosestGroundPoint: {x: 0, y: 0, z: 0}
+  lastDirectionToClosestGroundPoint: {x: 0, y: 0, z: 0}
   actualTravelSpeed: 0
   limitWalkGroundAnglesDelta: 0
   maxGroundAnglesDelta: 60

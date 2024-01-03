@@ -1516,7 +1516,7 @@ GameObject:
   - component: {fileID: 1710563144}
   - component: {fileID: 1710563143}
   m_Layer: 0
-  m_Name: Spawner
+  m_Name: Spawner Keyboard
   m_TagString: Untagged
   m_Icon: {fileID: -964228994112308473, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -1546,7 +1546,7 @@ Transform:
   m_GameObject: {fileID: 1710563142}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.384, y: 1.055, z: -0.537}
+  m_LocalPosition: {x: 0.384, y: 0.651, z: 0.361}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
