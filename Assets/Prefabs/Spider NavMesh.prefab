@@ -15,7 +15,7 @@ GameObject:
   m_Icon: {fileID: 4422084297763085224, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1329447934010378604
 Transform:
   m_ObjectHideFlags: 0
@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5182655187727130690}
   m_Layer: 7
-  m_Name: Visual (Object to rotate)
+  m_Name: Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 4745599334028133267}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 1.967, y: 6.082, z: 4.46}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -72,10 +72,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4721976053939169133}
-  - component: {fileID: 1440651369636185071}
-  - component: {fileID: 3570162291688899322}
+  - component: {fileID: 83000472086467905}
+  - component: {fileID: 6425888775714584278}
   m_Layer: 7
-  m_Name: Spider V2 (This parent object stays immobile)
+  m_Name: Spider NavMesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -99,7 +99,7 @@ Transform:
   - {fileID: 1329447934010378604}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1440651369636185071
+--- !u!114 &83000472086467905
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -108,32 +108,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 7337435633949765315}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ace1c27022ad4e146a2b7cc474bb7b5b, type: 3}
+  m_Script: {fileID: 11500000, guid: 71f42e80b5e324a44941e58fa1bfdb46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  triggerTransform: {fileID: 7312737910403620520}
-  visualTransform: {fileID: 5182655187727130690}
-  spiderTriggerZone: {fileID: 8781680290572246207}
   modelScaleFactor: 30
   modelTransform: {fileID: 7876915023808841737}
-  trigger: {fileID: 5896646214352649028}
-  destination: {fileID: 1329447934010378604}
-  groundDetectionTriggerScaleFactor: 2
-  groundLayerMask:
-    serializedVersion: 2
-    m_Bits: 115
-  rotationSpeed: 2
-  travelType: 1
+  sphereCollider: {fileID: 5896646214352649028}
   travelSpeed: 0
-  arrivalDistanceMargin: 0.1
-  groundDistance: 0.25
-  closestGroundPoint: {x: 0, y: 0, z: 0}
-  distanceToClosestGroundPoint: 0
-  directionToClosestGroundPoint: {x: 0, y: 0, z: 0}
-  actualTravelSpeed: 0
-  limitWalkGroundAnglesDelta: 0
-  maxGroundAnglesDelta: 60
---- !u!114 &3570162291688899322
+--- !u!114 &6425888775714584278
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -142,12 +124,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 7337435633949765315}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3770c613f768d5249a3ded46eaa92bc8, type: 3}
+  m_Script: {fileID: 11500000, guid: 8f7f2ca499703eb4fb3c27e78e048359, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 5783261056415041132}
-  spider: {fileID: 1440651369636185071}
-  speedFactor: 55
+  spider: {fileID: 83000472086467905}
+  speedFactor: 35
 --- !u!1 &7549895052428297590
 GameObject:
   m_ObjectHideFlags: 0
@@ -158,10 +140,9 @@ GameObject:
   m_Component:
   - component: {fileID: 7312737910403620520}
   - component: {fileID: 5896646214352649028}
-  - component: {fileID: 8781680290572246207}
   - component: {fileID: 1401876645976408144}
   m_Layer: 7
-  m_Name: Trigger (Object to move)
+  m_Name: Trigger
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -176,7 +157,7 @@ Transform:
   m_GameObject: {fileID: 7549895052428297590}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.967, y: 6.082, z: 4.46}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -201,28 +182,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.05
+  m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8781680290572246207
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7549895052428297590}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6175b44f8b832d448b1a9c43e86a4e65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  spider: {fileID: 1440651369636185071}
-  sphereCollider: {fileID: 5896646214352649028}
-  groundLayerMask:
-    serializedVersion: 2
-    m_Bits: 64
-  maxColliders: 4
-  maxIterationsForExtraChecks: 5
-  radiusFactorForExtraChecks: 2
 --- !u!54 &1401876645976408144
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -348,7 +309,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1803518109945884254, guid: 492d13f73703dff4390e81894e50ba2b, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1803518109945884254, guid: 492d13f73703dff4390e81894e50ba2b, type: 3}
       propertyPath: m_LocalRotation.x
@@ -356,7 +317,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1803518109945884254, guid: 492d13f73703dff4390e81894e50ba2b, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1803518109945884254, guid: 492d13f73703dff4390e81894e50ba2b, type: 3}
       propertyPath: m_LocalRotation.z
@@ -368,7 +329,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1803518109945884254, guid: 492d13f73703dff4390e81894e50ba2b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 180
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1803518109945884254, guid: 492d13f73703dff4390e81894e50ba2b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z

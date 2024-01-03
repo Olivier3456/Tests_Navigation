@@ -9,6 +9,8 @@ public class SpawnSpider : MonoBehaviour
 
     [SerializeField] private InputActionReference spawnSpider;
 
+    [SerializeField] private Transform destination;
+
 
     private void OnEnable()
     {
@@ -22,7 +24,13 @@ public class SpawnSpider : MonoBehaviour
 
         if (go.TryGetComponent(out Spider spider))
         {
-            spider.SetSpiderValues(0.05f, transform.position, 270f, 1f);
+            spider.SetSpiderValues(0.05f, transform.position, 180f, 1f);
+        }
+
+        if (go.TryGetComponent(out NavMesh_Spider navmesh_spider))
+        {
+            navmesh_spider.SetSpiderValues(transform.position, 0.05f, 1f, 0f);
+            navmesh_spider.SetDestination(destination.position);
         }
     }
 }

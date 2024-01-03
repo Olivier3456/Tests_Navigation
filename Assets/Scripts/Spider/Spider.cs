@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 
@@ -49,6 +50,8 @@ public class Spider : MonoBehaviour
     [HideInInspector] public float arrivalDistanceMargin;
     [HideInInspector] public float groundDistance;
     [HideInInspector] public Vector3 closestGroundPoint = Vector3.zero;
+    private Vector3 lastClosestGroundPoint = Vector3.zero;
+
     [HideInInspector] public float distanceToClosestGroundPoint = 0;
     [HideInInspector] public Vector3 directionToClosestGroundPoint;
     [HideInInspector] public RaycastDatas raycastDatas;
@@ -134,6 +137,7 @@ public class Spider : MonoBehaviour
     {
         SwitchMovementTypeIfNeeded();
 
+        lastClosestGroundPoint = closestGroundPoint;
         closestGroundPoint = spiderTriggerZone.GetClosestGroundPoint(out distanceToClosestGroundPoint);
 
 
@@ -189,9 +193,15 @@ public class Spider : MonoBehaviour
                 Debug.Log($"Ground angle delta is wider than maximum allowed ({maxGroundAnglesDelta}°).");
 
                 travelSpeed = 0;
+
                 if (move is Walk)
                 {
                     (move as Walk).StopTurn();
+
+
+
+
+
                 }
             }
         }
@@ -328,9 +338,23 @@ public class Spider : MonoBehaviour
         }
         else
         {
-            lastRaycastDatas = raycastDatas;
-            Debug.Log("Raycast haven't hit anything. Returning null.");
-            return null;
+            Debug.Log("Raycast haven't hit anything. Trying with another raycast.");
+
+            Vector3 otherRaycastStartPosition = triggerTransform.position - (raycastDatas.groundNormal * groundDistance * 2);
+            Vector3 directionToLastClosestGroundPoint = (lastClosestGroundPoint - otherRaycastStartPosition).normalized;
+
+            if (Physics.Raycast(otherRaycastStartPosition, directionToLastClosestGroundPoint, out hit, maxDistance, groundLayerMask))
+            {
+                lastRaycastDatas = raycastDatas;
+                Debug.Log("Second raycast have hit ground.");
+                return new RaycastDatas() { groundNormal = hit.normal, hitPoint = hit.point };
+            }
+            else
+            {
+                lastRaycastDatas = raycastDatas;
+                Debug.Log("Second raycast haven't hit anything. Returning null.");
+                return null;
+            }
         }
     }
 

@@ -1502,7 +1502,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3789ee6852e29244d98aef34f7b99e38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefab: {fileID: 7337435633949765315, guid: 27162d6901f1e1f46a79b86016590f53, type: 3}
+  prefab: {fileID: 7337435633949765315, guid: 16c77bb92749d6b4d802ec3d2fa21667, type: 3}
   spawnSpider: {fileID: 83097790271614945, guid: c348712bda248c246b8c49b3db54643f, type: 3}
 --- !u!1 &1523086868
 GameObject:

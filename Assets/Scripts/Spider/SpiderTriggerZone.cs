@@ -44,6 +44,12 @@ public class SpiderTriggerZone : MonoBehaviour
             }
 
             sphereCollider.radius = initialSphereColliderRadius;
+
+            if (closestPointOfAllColliders == Vector3.zero)
+            {
+                Debug.Log("No ground surface detected by the new spawned spider!");
+                //Destroy(spider.gameObject);
+            }
         }
         else
         {
@@ -80,7 +86,7 @@ public class SpiderTriggerZone : MonoBehaviour
 
     /// <summary>
     /// ClosestPoint() doesn't work with non convex colliders, and will fail silently.
-    /// Use this function instead to find the closest point of a non convex collider.
+    /// This function finds the closest point of all types of colliders.
     /// (https://gamedev.stackexchange.com/questions/154676/finding-the-closest-point-on-a-concave-mesh)
     /// </summary>
     public static bool CheckSphereExtra(Collider target_collider, SphereCollider sphere_collider, out Vector3 closest_point, out Vector3 surface_normal)
