@@ -89,7 +89,7 @@ public class SpiderTriggerZone : MonoBehaviour
     /// This function finds the closest point of all types of colliders.
     /// (https://gamedev.stackexchange.com/questions/154676/finding-the-closest-point-on-a-concave-mesh)
     /// </summary>
-    public static bool CheckSphereExtra(Collider target_collider, SphereCollider sphere_collider, out Vector3 closest_point, out Vector3 surface_normal)
+    private static bool CheckSphereExtra(Collider target_collider, SphereCollider sphere_collider, out Vector3 closest_point, out Vector3 surface_normal)
     {
         closest_point = Vector3.zero;
         surface_normal = Vector3.zero;
