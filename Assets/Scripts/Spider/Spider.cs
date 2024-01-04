@@ -3,12 +3,22 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 
 public interface ITravel
 {
     public void Travel();
+    //public void RotateVisualTransform();
 }
+
+//public class RaycastDatas
+//{
+//    public Vector3 groundNormal;
+//    public Vector3 hitPoint;
+//}
 
 
 public class Spider : MonoBehaviour
@@ -85,13 +95,11 @@ public class Spider : MonoBehaviour
         float modelScale = modelScaleFactor * spiderSize;
         modelTransform.localScale = new Vector3(modelScale, modelScale, modelScale);
     }
-
     private void SetPosition(Vector3 position)
     {
         triggerTransform.position = position;
         visualTransform.position = position;
     }
-
     public void SetTravelSpeed(float speed)
     {
         travelSpeed = speed * spiderSize;
@@ -168,18 +176,18 @@ public class Spider : MonoBehaviour
 
 
         // ====================== DEBUG ======================
-        //if (!IsTurning() && travelSpeed != 0 && closestGroundPoint != Vector3.zero)
-        //{
-        //    if (move is Walk)
-        //    {
-        //        float angle = Random.Range(-30, 30);
-        //        float length = Random.Range(2, 5);
+        if (!IsTurning() && travelSpeed != 0 && closestGroundPoint != Vector3.zero)
+        {
+            if (move is Walk)
+            {
+                float angle = Random.Range(-30, 30);
+                float length = Random.Range(2, 5);
 
-        //        Turn(angle, length);
-        //    }
+                Turn(angle, length);
+            }
 
-        //    SetTravelSpeed(Random.Range(0.75f, 1.25f));
-        //}
+            SetTravelSpeed(Random.Range(0.5f, 1.5f));
+        }
         // ===================================================
 
 
@@ -239,6 +247,8 @@ public class Spider : MonoBehaviour
         {
             visualTransform.position = targetPosition;
             initialVisualTransformPlacement = false;
+
+            //Debug.Log("Initial visual transform placement done.");
         }
         else
         {
@@ -314,27 +324,27 @@ public class Spider : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(triggerTransform.position, trigger.radius);
+        //Gizmos.color = Color.red;
+        //Gizmos.DrawWireSphere(triggerTransform.position, trigger.radius);
 
-        if (EditorApplication.isPlaying)
-        {
-            if (move != null && move is WalkToDestination)
-            {
-                Gizmos.DrawSphere((move as WalkToDestination).projectedDestination, 0.1f);
-            }
-        }
-        else
-        {
-            transform.position = Vector3.zero;
-            transform.rotation = Quaternion.identity;
-            visualTransform.position = triggerTransform.position;
-            triggerTransform.rotation = Quaternion.identity;
-            destination.gameObject.SetActive(travelType == TravelType.ToDestination);
-        }
+        //if (EditorApplication.isPlaying)
+        //{
+        //    if (move != null && move is WalkToDestination)
+        //    {
+        //        Gizmos.DrawSphere((move as WalkToDestination).projectedDestination, 0.1f);
+        //    }
+        //}
+        //else
+        //{
+        //    transform.position = Vector3.zero;
+        //    transform.rotation = Quaternion.identity;
+        //    visualTransform.position = triggerTransform.position;
+        //    triggerTransform.rotation = Quaternion.identity;
+        //    destination.gameObject.SetActive(travelType == TravelType.ToDestination);
+        //}
 
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(triggerTransform.position, groundDistance);
+        //Gizmos.color = Color.blue;
+        //Gizmos.DrawWireSphere(triggerTransform.position, groundDistance);
     }
 #endif
 }
