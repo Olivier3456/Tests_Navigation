@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Walk : MonoBehaviour, ITravel
+public class Walk : MonoBehaviour
 {
     public Spider spider;
 
@@ -10,15 +10,15 @@ public class Walk : MonoBehaviour, ITravel
 
     public void Travel()
     {
-        Vector3 lastPosition = spider.triggerTransform.position;
+        Vector3 lastPosition = spider.TriggerTransform.position;
 
-        Vector3 movementDirection = spider.visualTransform.forward;
-        Vector3 movement = movementDirection * spider.travelSpeed * Time.deltaTime;
-        spider.triggerTransform.position += movement;
+        Vector3 movementDirection = spider.VisualTransform.forward;
+        Vector3 movement = movementDirection * spider.TravelSpeed * Time.deltaTime;
+        spider.TriggerTransform.position += movement;
 
-        Vector3 newPosition = spider.triggerTransform.position;
+        Vector3 newPosition = spider.TriggerTransform.position;
 
-        spider.actualTravelSpeed = Vector3.Distance(lastPosition, newPosition) / Time.deltaTime;
+        spider.ActualTravelSpeed = Vector3.Distance(lastPosition, newPosition) / Time.deltaTime;
     }
 
        
@@ -43,7 +43,7 @@ public class Walk : MonoBehaviour, ITravel
         while (step < 1)
         {
             float turningRotationAngleForThatFrame = Time.deltaTime * angle;
-            spider.visualTransform.rotation *= Quaternion.AngleAxis(turningRotationAngleForThatFrame, Vector3.up);
+            spider.VisualTransform.rotation *= Quaternion.AngleAxis(turningRotationAngleForThatFrame, Vector3.up);
             yield return null;
             step += Time.deltaTime / length;
         }

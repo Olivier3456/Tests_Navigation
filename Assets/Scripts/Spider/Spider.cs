@@ -5,49 +5,38 @@ using UnityEditor;
 using UnityEngine;
 
 
-public interface ITravel
-{
-    public void Travel();
-}
-
 
 public class Spider : MonoBehaviour
 {
-    private float spiderSize = 0.05f;
-
-    public enum TravelType { ToDestination, JustWalk }
-
-    public Transform triggerTransform;
-    public Transform visualTransform;
+    [SerializeField] private Transform triggerTransform;
+    [SerializeField] private Transform visualTransform;
     [Space(20)]
     [SerializeField] private SpiderTriggerZone spiderTriggerZone;
     [Space(20)]
     [Tooltip("The scale of the model when it measures one meter.")]
     [SerializeField] private float modelScaleFactor;
     [SerializeField] private Transform modelTransform;
-    public SphereCollider trigger;
+    [SerializeField] private SphereCollider trigger;
     [Space(20)]
-    public Transform destination;
+    [SerializeField] private LayerMask groundLayerMask;
     [Space(20)]
-    public LayerMask groundLayerMask;
+    [SerializeField] private float rotationSpeed = 2f;
     [Space(20)]
-    public float rotationSpeed = 2f;
+    [SerializeField] private float travelSpeed = 0.5f;
     [Space(20)]
-    public TravelType travelType;
-    public float travelSpeed = 0.5f;
+    [SerializeField] private bool limitWalkGroundAnglesDelta;
+    [SerializeField] private float maxGroundAnglesDelta = 60;
 
 
-    [HideInInspector] public float arrivalDistanceMargin;
-    [HideInInspector] public float groundDistance;
-    [HideInInspector] public Vector3 closestGroundPoint = Vector3.zero;
+    private float spiderSize = 0.05f;
+    private float groundDistance;
+    private Vector3 closestGroundPoint = Vector3.zero;
 
-    [HideInInspector] public float distanceToClosestGroundPoint = 0;
-    [HideInInspector] public Vector3 directionToClosestGroundPoint;
-    [HideInInspector] public Vector3 lastDirectionToClosestGroundPoint;
-    [HideInInspector] public float actualTravelSpeed = 0;
-    [HideInInspector] public ITravel move;
+    private float distanceToClosestGroundPoint = 0;
+    private Vector3 directionToClosestGroundPoint;
+    private Vector3 lastDirectionToClosestGroundPoint;
+    private float actualTravelSpeed = 0;
     private Walk walk;
-    private WalkToDestination walkToDestination;
 
     private bool initialVisualTransformPlacement = true;
     private bool initialVisualTransformRotation = true;
@@ -58,10 +47,10 @@ public class Spider : MonoBehaviour
     private float initialAngle;
     private float groundDetectionTriggerScaleFactor = 2f;
 
-
-    [Space(20)]
-    [SerializeField] private bool limitWalkGroundAnglesDelta;
-    [SerializeField] private float maxGroundAnglesDelta = 60;
+    public Transform TriggerTransform { get { return triggerTransform; } }
+    public Transform VisualTransform { get { return visualTransform; } }
+    public float TravelSpeed { get { return travelSpeed; } }
+    public float ActualTravelSpeed { get { return actualTravelSpeed; } set { actualTravelSpeed = value; } }
 
 
     public void SetSpiderValues(float size, Vector3 position, float angle, float speed)
@@ -80,7 +69,6 @@ public class Spider : MonoBehaviour
         trigger.radius = groundDistance * groundDetectionTriggerScaleFactor;
         groundingSpeed = travelSpeed * 1.5f;
         groundDistanceMargin = spiderSize / 20f;
-        arrivalDistanceMargin = spiderSize / 10f;
 
         float modelScale = modelScaleFactor * spiderSize;
         modelTransform.localScale = new Vector3(modelScale, modelScale, modelScale);
@@ -99,19 +87,13 @@ public class Spider : MonoBehaviour
 
         if (travelSpeed == 0)
         {
-            if (move is Walk)
-            {
-                (move as Walk).StopTurn();
-            }
+            walk.StopTurn();
         }
     }
 
 
     private void Awake()
     {
-        walkToDestination = transform.AddComponent<WalkToDestination>();
-        walkToDestination.spider = this;
-
         walk = transform.AddComponent<Walk>();
         walk.spider = this;
     }
@@ -119,8 +101,6 @@ public class Spider : MonoBehaviour
 
     private void Update()
     {
-        SwitchMovementTypeIfNeeded();
-
         closestGroundPoint = spiderTriggerZone.GetClosestGroundPoint(out distanceToClosestGroundPoint);
 
         if (closestGroundPoint != Vector3.zero)
@@ -131,7 +111,7 @@ public class Spider : MonoBehaviour
 
             if (travelSpeed != 0)
             {
-                move.Travel();
+                walk.Travel();
                 RotateVisualTransform();
             }
             else
@@ -157,10 +137,7 @@ public class Spider : MonoBehaviour
 
                     travelSpeed = 0;
 
-                    if (move is Walk)
-                    {
-                        (move as Walk).StopTurn();
-                    }
+                    walk.StopTurn();
                 }
             }
         }
@@ -187,20 +164,6 @@ public class Spider : MonoBehaviour
         closestGroundPoint = Vector3.zero;
         lastDirectionToClosestGroundPoint = directionToClosestGroundPoint;
         directionToClosestGroundPoint = Vector3.zero;
-    }
-
-
-    private void SwitchMovementTypeIfNeeded()
-    {
-        switch (travelType)
-        {
-            case TravelType.JustWalk:
-                move = walk;
-                break;
-            case TravelType.ToDestination:
-                move = walkToDestination;
-                break;
-        }
     }
 
 
@@ -280,27 +243,13 @@ public class Spider : MonoBehaviour
 
     public void Turn(float angle, float length)
     {
-        if (move is Walk)
-        {
-            (move as Walk).Turn(angle, length);
-        }
-        else
-        {
-            Debug.Log("Spider is currently in Move To Destination Mode. You can't send it a walk command.");
-        }
+        walk.Turn(angle, length);
     }
 
 
     public bool IsTurning()
     {
-        if (move is Walk)
-        {
-            return (move as Walk).IsTurning();
-        }
-        else
-        {
-            return false;
-        }
+        return walk.IsTurning();
     }
 
 
@@ -317,20 +266,12 @@ public class Spider : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(triggerTransform.position, trigger.radius);
 
-        if (EditorApplication.isPlaying)
-        {
-            if (move != null && move is WalkToDestination)
-            {
-                Gizmos.DrawSphere((move as WalkToDestination).projectedDestination, 0.1f);
-            }
-        }
-        else
+        if (!EditorApplication.isPlaying)
         {
             transform.position = Vector3.zero;
             transform.rotation = Quaternion.identity;
             visualTransform.position = triggerTransform.position;
             triggerTransform.rotation = Quaternion.identity;
-            destination.gameObject.SetActive(travelType == TravelType.ToDestination);
         }
 
         Gizmos.color = Color.blue;
