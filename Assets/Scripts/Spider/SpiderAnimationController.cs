@@ -11,6 +11,6 @@ public class SpiderAnimationController : MonoBehaviour
 
     void Update()
     {
-        animator.speed = spider.GetActualTravelSpeed() * speedFactor;
+        animator.speed = spider.ActualTravelSpeed * speedFactor;
     }
 }

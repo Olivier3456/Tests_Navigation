@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class Spider : MonoBehaviour
 {
+    [SerializeField] private SphereCollider trigger;
     [SerializeField] private Transform triggerTransform;
     [SerializeField] private Transform visualTransform;
     [Space(20)]
@@ -16,7 +17,6 @@ public class Spider : MonoBehaviour
     [Tooltip("The scale of the model when it measures one meter.")]
     [SerializeField] private float modelScaleFactor;
     [SerializeField] private Transform modelTransform;
-    [SerializeField] private SphereCollider trigger;
     [Space(20)]
     [SerializeField] private LayerMask groundLayerMask;
     [Space(20)]
@@ -38,12 +38,11 @@ public class Spider : MonoBehaviour
     private float actualTravelSpeed = 0;
     private Walk walk;
 
+    private Vector3 lastVisualTransformPosition = Vector3.zero;
+
     private bool initialVisualTransformPlacement = true;
     private bool initialVisualTransformRotation = true;
-    private bool initialTriggerTransformPlacement = true;
 
-    private float groundingSpeed;
-    private float groundDistanceMargin = 0.025f;
     private float initialAngle;
     private float groundDetectionTriggerScaleFactor = 2f;
 
@@ -51,6 +50,7 @@ public class Spider : MonoBehaviour
     public Transform VisualTransform { get { return visualTransform; } }
     public float TravelSpeed { get { return travelSpeed; } }
     public float ActualTravelSpeed { get { return actualTravelSpeed; } set { actualTravelSpeed = value; } }
+    public Vector3 LastVisualTransformPosition { get { return lastVisualTransformPosition; } }
 
 
     public void SetSpiderValues(float size, Vector3 position, float angle, float speed)
@@ -65,10 +65,8 @@ public class Spider : MonoBehaviour
     private void SetSpiderSize(float spiderSize)
     {
         travelSpeed *= spiderSize;
-        groundDistance = spiderSize / 2;
+        groundDistance = spiderSize * 0.5f;
         trigger.radius = groundDistance * groundDetectionTriggerScaleFactor;
-        groundingSpeed = travelSpeed * 1.5f;
-        groundDistanceMargin = spiderSize / 20f;
 
         float modelScale = modelScaleFactor * spiderSize;
         modelTransform.localScale = new Vector3(modelScale, modelScale, modelScale);
@@ -83,7 +81,6 @@ public class Spider : MonoBehaviour
     public void SetTravelSpeed(float speed)
     {
         travelSpeed = speed * spiderSize;
-        groundingSpeed = travelSpeed * 1.5f;
 
         if (travelSpeed == 0)
         {
@@ -126,7 +123,8 @@ public class Spider : MonoBehaviour
 
             if (travelSpeed != 0 || initialVisualTransformPlacement)
             {
-                PlaceVisualTransformOnGround();
+                lastVisualTransformPosition = visualTransform.position;
+                PlaceVisualTransform();
             }
 
             if (limitWalkGroundAnglesDelta)
@@ -169,28 +167,11 @@ public class Spider : MonoBehaviour
 
     private void TriggerTransformStayGrounded()
     {
-        if (initialTriggerTransformPlacement)
-        {
-            triggerTransform.position += directionToClosestGroundPoint * (distanceToClosestGroundPoint - groundDistance);
-            initialTriggerTransformPlacement = false;
-
-            Debug.Log("Initial trigger transform placement done.");
-
-            return;
-        }
-
-        if (distanceToClosestGroundPoint > groundDistance + groundDistanceMargin)
-        {
-            triggerTransform.position += directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
-        }
-        else if (distanceToClosestGroundPoint < groundDistance)
-        {
-            triggerTransform.position -= directionToClosestGroundPoint * groundingSpeed * Time.deltaTime;
-        }
+        triggerTransform.position += directionToClosestGroundPoint * (distanceToClosestGroundPoint - groundDistance);
     }
 
 
-    private void PlaceVisualTransformOnGround()
+    private void PlaceVisualTransform()
     {
         // For the Lerp speed to be more linear when the spider rotates on wall <--> ground acute (= inner) angles.
         Vector3 actualPosition = visualTransform.position;
@@ -232,12 +213,6 @@ public class Spider : MonoBehaviour
         {
             visualTransform.rotation = Quaternion.Slerp(visualTransform.rotation, rotationToGround, slerp);
         }
-    }
-
-
-    public float GetActualTravelSpeed()
-    {
-        return actualTravelSpeed;
     }
 
 

@@ -8,17 +8,20 @@ public class Walk : MonoBehaviour
 
     public float maxGroundAnglesDeltaToContinueWalking = 90f;
 
+    
+
     public void Travel()
     {
-        Vector3 lastPosition = spider.TriggerTransform.position;
+        //Vector3 lastPosition = spider.TriggerTransform.position;
 
         Vector3 movementDirection = spider.VisualTransform.forward;
         Vector3 movement = movementDirection * spider.TravelSpeed * Time.deltaTime;
         spider.TriggerTransform.position += movement;
 
-        Vector3 newPosition = spider.TriggerTransform.position;
+        //Vector3 newPosition = spider.TriggerTransform.position;
 
-        spider.ActualTravelSpeed = Vector3.Distance(lastPosition, newPosition) / Time.deltaTime;
+        //spider.ActualTravelSpeed = Vector3.Distance(lastPosition, newPosition) / Time.deltaTime;
+        spider.ActualTravelSpeed = Vector3.Distance(spider.VisualTransform.position, spider.LastVisualTransformPosition) / Time.deltaTime;
     }
 
        
