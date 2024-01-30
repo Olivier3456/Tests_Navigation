@@ -111,28 +111,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ace1c27022ad4e146a2b7cc474bb7b5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  trigger: {fileID: 5896646214352649028}
   triggerTransform: {fileID: 7312737910403620520}
   visualTransform: {fileID: 5182655187727130690}
   spiderTriggerZone: {fileID: 8781680290572246207}
   modelScaleFactor: 30
   modelTransform: {fileID: 7876915023808841737}
-  trigger: {fileID: 5896646214352649028}
-  destination: {fileID: 1329447934010378604}
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 115
   rotationSpeed: 2
-  travelType: 1
-  travelSpeed: 0
-  arrivalDistanceMargin: 0.1
-  groundDistance: 0.25
-  closestGroundPoint: {x: 0, y: 0, z: 0}
-  distanceToClosestGroundPoint: 0
-  directionToClosestGroundPoint: {x: 0, y: 0, z: 0}
-  lastDirectionToClosestGroundPoint: {x: 0, y: 0, z: 0}
-  actualTravelSpeed: 0
-  limitWalkGroundAnglesDelta: 0
-  maxGroundAnglesDelta: 60
+  speed: 0.5
+  limitWalkGroundAnglesDelta: 1
+  stopWhenAngleChangeIsDetected: 0
 --- !u!114 &3570162291688899322
 MonoBehaviour:
   m_ObjectHideFlags: 0

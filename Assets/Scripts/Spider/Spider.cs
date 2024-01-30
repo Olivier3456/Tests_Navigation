@@ -22,10 +22,11 @@ public class Spider : MonoBehaviour
     [Space(20)]
     [SerializeField] private float rotationSpeed = 2f;
     [Space(20)]
-    [SerializeField] private float travelSpeed = 0.5f;
+    [SerializeField] private float speed = 0.5f;
     [Space(20)]
     [SerializeField] private bool limitWalkGroundAnglesDelta;
-    [SerializeField] private float maxGroundAnglesDelta = 60;
+    [SerializeField] private bool stopWhenAngleChangeIsDetected;
+    //[SerializeField] private float maxGroundAnglesDelta = 60;
 
 
     private float spiderSize = 0.05f;
@@ -34,8 +35,7 @@ public class Spider : MonoBehaviour
 
     private float distanceToClosestGroundPoint = 0;
     private Vector3 directionToClosestGroundPoint;
-    private Vector3 lastDirectionToClosestGroundPoint;
-    private float actualTravelSpeed = 0;
+    private float actualSpeed = 0;
     private Walk walk;
 
     private Vector3 lastVisualTransformPosition = Vector3.zero;
@@ -46,10 +46,19 @@ public class Spider : MonoBehaviour
     private float initialAngle;
     private float groundDetectionTriggerScaleFactor = 2f;
 
+    private enum Direction { Left, Right, None }
+
+
+    // Settings of the floor angle change detection:
+    private float raycastHitDistanceExpectedOnFlatGround;
+    private float forwardFactor = 1f;
+    private float sideFactor = 0.5f;
+
+
     public Transform TriggerTransform { get { return triggerTransform; } }
     public Transform VisualTransform { get { return visualTransform; } }
-    public float TravelSpeed { get { return travelSpeed; } }
-    public float ActualTravelSpeed { get { return actualTravelSpeed; } set { actualTravelSpeed = value; } }
+    public float Speed { get { return speed; } }
+    public float ActualSpeed { get { return actualSpeed; } set { actualSpeed = value; } }
     public Vector3 LastVisualTransformPosition { get { return lastVisualTransformPosition; } }
 
 
@@ -57,14 +66,16 @@ public class Spider : MonoBehaviour
     {
         initialAngle = angle;
 
-        SetSpiderSize(size);
+        SetSize(size);
         SetPosition(position);
-        SetTravelSpeed(speed);
+        SetSpeed(speed);
+
+        SetRaycastHitDistanceExpectedOnFlatGround();
     }
 
-    private void SetSpiderSize(float spiderSize)
+    private void SetSize(float spiderSize)
     {
-        travelSpeed *= spiderSize;
+        this.spiderSize = spiderSize;
         groundDistance = spiderSize * 0.5f;
         trigger.radius = groundDistance * groundDetectionTriggerScaleFactor;
 
@@ -78,11 +89,11 @@ public class Spider : MonoBehaviour
         visualTransform.position = position;
     }
 
-    public void SetTravelSpeed(float speed)
+    public void SetSpeed(float speed)
     {
-        travelSpeed = speed * spiderSize;
+        this.speed = speed * spiderSize;
 
-        if (travelSpeed == 0)
+        if (this.speed == 0)
         {
             walk.StopTurn();
         }
@@ -106,14 +117,14 @@ public class Spider : MonoBehaviour
 
             TriggerTransformStayGrounded();
 
-            if (travelSpeed != 0)
+            if (speed != 0)
             {
                 walk.Travel();
                 RotateVisualTransform();
             }
             else
             {
-                actualTravelSpeed = 0;
+                actualSpeed = 0;
 
                 if (initialVisualTransformRotation)
                 {
@@ -121,21 +132,51 @@ public class Spider : MonoBehaviour
                 }
             }
 
-            if (travelSpeed != 0 || initialVisualTransformPlacement)
+            if (speed != 0 || initialVisualTransformPlacement)
             {
                 lastVisualTransformPosition = visualTransform.position;
                 PlaceVisualTransform();
             }
 
+
+
+
+
+
             if (limitWalkGroundAnglesDelta)
             {
-                if (GetGroundAnglesDelta() > maxGroundAnglesDelta)
+                Direction change = DetectGroundAngleChange();
+
+                if (change == Direction.Left)
                 {
-                    Debug.Log($"Ground angle delta is wider than maximum allowed ({maxGroundAnglesDelta}°).");
+                    //Debug.Log("Ground Angle change detected on left.");
+                    if (stopWhenAngleChangeIsDetected)
+                    {
+                        speed = 0;
+                        walk.StopTurn();
+                    }
+                    else
+                    {
+                        float angle = 90;
+                        float length = 0f;
+                        Turn(angle, length);
+                    }
+                }
+                else if (change == Direction.Right)
+                {
+                    //Debug.Log("Ground Angle change detected on right.");
 
-                    travelSpeed = 0;
-
-                    walk.StopTurn();
+                    if (stopWhenAngleChangeIsDetected)
+                    {
+                        speed = 0;
+                        walk.StopTurn();
+                    }
+                    else
+                    {
+                        float angle = -90;
+                        float length = 0f;
+                        Turn(angle, length);
+                    }
                 }
             }
         }
@@ -143,7 +184,7 @@ public class Spider : MonoBehaviour
 
 
         // ====================== DEBUG ======================
-        //if (!IsTurning() && travelSpeed != 0 && closestGroundPoint != Vector3.zero)
+        //if (!IsTurning() && speed != 0 && closestGroundPoint != Vector3.zero)
         //{
         //    if (move is Walk)
         //    {
@@ -153,14 +194,14 @@ public class Spider : MonoBehaviour
         //        Turn(angle, length);
         //    }
 
-        //    SetTravelSpeed(Random.Range(0.75f, 1.25f));
+        //    SetSpeed(Random.Range(0.75f, 1.25f));
         //}
         // ===================================================
 
 
 
         closestGroundPoint = Vector3.zero;
-        lastDirectionToClosestGroundPoint = directionToClosestGroundPoint;
+        //lastDirectionToClosestGroundPoint = directionToClosestGroundPoint;
         directionToClosestGroundPoint = Vector3.zero;
     }
 
@@ -177,7 +218,7 @@ public class Spider : MonoBehaviour
         Vector3 actualPosition = visualTransform.position;
         Vector3 targetPosition = closestGroundPoint;
         float distance = Vector3.Distance(actualPosition, targetPosition);
-        float lerp = travelSpeed / distance;
+        float lerp = speed / distance;
 
         if (initialVisualTransformPlacement)
         {
@@ -228,11 +269,53 @@ public class Spider : MonoBehaviour
     }
 
 
-    private float GetGroundAnglesDelta()
+    private Direction DetectGroundAngleChange()
     {
-        return Vector3.Angle(directionToClosestGroundPoint, lastDirectionToClosestGroundPoint);
+        Vector3 leftRaycastDirection = ((-visualTransform.right * sideFactor) + (visualTransform.forward * forwardFactor) + directionToClosestGroundPoint).normalized;
+        Vector3 rightRaycastDirection = ((visualTransform.right * sideFactor) + (visualTransform.forward * forwardFactor) + directionToClosestGroundPoint).normalized;
+
+        float margin = raycastHitDistanceExpectedOnFlatGround * 0.1f;
+
+        //Debug.Log($"raycastHitDistanceOnFlatGround = {raycastHitDistanceExpectedOnFlatGround}");
+
+        if (Physics.Raycast(TriggerTransform.position, leftRaycastDirection, out RaycastHit leftHit, groundLayerMask))
+        {
+            if (leftHit.distance > raycastHitDistanceExpectedOnFlatGround + margin || leftHit.distance < raycastHitDistanceExpectedOnFlatGround - margin)
+            {
+                //Debug.Log($"leftHit.distance = {leftHit.distance}");
+                return Direction.Left;
+            }
+        }
+        else
+        {
+            return Direction.Left;
+        }
+
+        if (Physics.Raycast(TriggerTransform.position, rightRaycastDirection, out RaycastHit rightHit, groundLayerMask))
+        {
+            if (rightHit.distance > raycastHitDistanceExpectedOnFlatGround + margin || rightHit.distance < raycastHitDistanceExpectedOnFlatGround - margin)
+            {
+                return Direction.Right;
+            }
+        }
+        else
+        {
+            return Direction.Right;
+        }
+
+        return Direction.None;
     }
 
+
+    private void SetRaycastHitDistanceExpectedOnFlatGround()
+    {
+        if (!stopWhenAngleChangeIsDetected)
+        {
+            forwardFactor += speed / spiderSize;
+        }
+
+        raycastHitDistanceExpectedOnFlatGround = ((Vector3.right * sideFactor * groundDistance) + (Vector3.forward * forwardFactor * groundDistance) + (Vector3.down * groundDistance)).magnitude;
+    }
 
 
 #if UNITY_EDITOR

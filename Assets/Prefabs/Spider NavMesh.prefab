@@ -114,7 +114,6 @@ MonoBehaviour:
   modelScaleFactor: 30
   modelTransform: {fileID: 7876915023808841737}
   sphereCollider: {fileID: 5896646214352649028}
-  travelSpeed: 0
 --- !u!114 &6425888775714584278
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -8,23 +8,23 @@ public class Walk : MonoBehaviour
 
     public float maxGroundAnglesDeltaToContinueWalking = 90f;
 
-    
+
 
     public void Travel()
     {
         //Vector3 lastPosition = spider.TriggerTransform.position;
 
         Vector3 movementDirection = spider.VisualTransform.forward;
-        Vector3 movement = movementDirection * spider.TravelSpeed * Time.deltaTime;
+        Vector3 movement = movementDirection * spider.Speed * Time.deltaTime;
         spider.TriggerTransform.position += movement;
 
         //Vector3 newPosition = spider.TriggerTransform.position;
 
-        //spider.ActualTravelSpeed = Vector3.Distance(lastPosition, newPosition) / Time.deltaTime;
-        spider.ActualTravelSpeed = Vector3.Distance(spider.VisualTransform.position, spider.LastVisualTransformPosition) / Time.deltaTime;
+        //spider.ActualSpeed = Vector3.Distance(lastPosition, newPosition) / Time.deltaTime;
+        spider.ActualSpeed = Vector3.Distance(spider.VisualTransform.position, spider.LastVisualTransformPosition) / Time.deltaTime;
     }
 
-       
+
     private IEnumerator turnCoroutine;
     public void Turn(float angle, float length)
     {
@@ -34,8 +34,17 @@ public class Walk : MonoBehaviour
             StopCoroutine(turnCoroutine);
         }
 
-        turnCoroutine = TurnCoroutine(angle, length);
-        StartCoroutine(turnCoroutine);
+        length = Mathf.Clamp(length, 0, Mathf.Infinity);
+
+        if (length > 0)
+        {
+            turnCoroutine = TurnCoroutine(angle, length);
+            StartCoroutine(turnCoroutine);
+        }
+        else
+        {
+            spider.VisualTransform.rotation *= Quaternion.AngleAxis(angle, Vector3.up);
+        }
     }
 
 
