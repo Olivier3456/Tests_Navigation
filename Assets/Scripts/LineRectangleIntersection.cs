@@ -1,41 +1,37 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
+public struct HeightData
+{
+    public float length;
+    public Vector3 direction;
+    public Vector3 intersection;
+}
+
 public class LineRectangleIntersection : MonoBehaviour
 {
-    public Transform rectangleTransform; // Assign the transform of the rectangle
-    public Vector2 rectangleSize; // Set the size of the rectangle
+    public Transform rectangleTransform;
+    public Vector2 rectangleSize;
 
-    public GameObject cornerVisualMarker1;
-    public GameObject cornerVisualMarker2;
-    public GameObject cornerVisualMarker3;
-    public GameObject cornerVisualMarker4;
-
-
-    private struct HeightData
-    {
-        public float length;
-        public Vector3 direction;
-    }
+    private HeightData[] heightData = null;
+    public HeightData[] HeightDatas { get { return heightData; } }
 
 
     void Update()
     {
-        HeightData[] heightData = GetHeightData();
-
-        foreach (var item in heightData)
-        {
-            Vector3 intersectionPosition = transform.position + item.direction * item.length;
-
-            Debug.DrawLine(transform.position, intersectionPosition, Color.red);
-        }
+        heightData = GetHeightData();
     }
+
 
     private HeightData[] GetHeightData()
     {
         Vector3[] corners = GetCornersPosition();
 
-        return GetTrianglesHeight(corners);
+        HeightData[] result = GetTrianglesHeight(corners);
+
+        GetIntersection(ref result);
+
+        return result;
     }
 
     private Vector3[] GetCornersPosition()
@@ -51,18 +47,10 @@ public class LineRectangleIntersection : MonoBehaviour
         corners[2] = rectangleTransform.TransformPoint(new Vector3(halfWidth, 0, halfHeight));
         corners[3] = rectangleTransform.TransformPoint(new Vector3(-halfWidth, 0, halfHeight));
 
-
-        // DEBUG
-        //cornerVisualMarker1.transform.position = corners[0];
-        //cornerVisualMarker2.transform.position = corners[1];
-        //cornerVisualMarker3.transform.position = corners[2];
-        //cornerVisualMarker4.transform.position = corners[3];
-
-
         return corners;
     }
 
-    
+
 
     private HeightData[] GetTrianglesHeight(Vector3[] corners)
     {
@@ -105,4 +93,33 @@ public class LineRectangleIntersection : MonoBehaviour
 
         return heights;
     }
+
+
+    private void GetIntersection(ref HeightData[] heightData)
+    {
+        for (int i = 0; i < heightData.Length; i++)
+        {
+            heightData[i].intersection = transform.position + heightData[i].direction * heightData[i].length;
+            Debug.DrawLine(transform.position, heightData[i].intersection, Color.red);
+        }
+    }
+
+
+
+
+    //private HeightData GetLongestHeight(HeightData[] heightData)
+    //{
+    //    HeightData longestHeight = new HeightData();
+    //    float maxDistance = 0;
+    //    foreach (var item in heightData)
+    //    {
+    //        if (item.length > maxDistance)
+    //        {
+    //            maxDistance = item.length;
+    //            longestHeight = item;
+    //        }
+    //    }
+
+    //    return longestHeight;
+    //}
 }

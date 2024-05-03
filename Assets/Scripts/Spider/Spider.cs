@@ -184,7 +184,7 @@ public class Spider : MonoBehaviour
 
 
         // ====================== DEBUG ======================
-        //if (!IsTurning() && speed != 0 && closestGroundPoint != Vector3.zero)
+        //if (!IsTurning() && currentSpeed != 0 && closestGroundPoint != Vector3.zero)
         //{
         //    if (move is Walk)
         //    {
@@ -214,7 +214,7 @@ public class Spider : MonoBehaviour
 
     private void PlaceVisualTransform()
     {
-        // For the Lerp speed to be more linear when the spider rotates on wall <--> ground acute (= inner) angles.
+        // For the Lerp currentSpeed to be more linear when the spider rotates on wall <--> ground acute (= inner) angles.
         Vector3 actualPosition = visualTransform.position;
         Vector3 targetPosition = closestGroundPoint;
         float distance = Vector3.Distance(actualPosition, targetPosition);
@@ -237,7 +237,7 @@ public class Spider : MonoBehaviour
         // Ajuster la rotation pour tenir compte de l'inclinaison du sol.
         Quaternion rotationToGround = Quaternion.FromToRotation(visualTransform.up, -directionToClosestGroundPoint) * visualTransform.rotation;
 
-        // For the rotation to be at a more constant speed.
+        // For the rotation to be at a more constant currentSpeed.
         //float angle = Quaternion.Angle(spider.visualTransform.rotation, rotationToGround);
         float slerp = Time.deltaTime * rotationSpeed;
         //slerp *= 1 / (angle / 360);

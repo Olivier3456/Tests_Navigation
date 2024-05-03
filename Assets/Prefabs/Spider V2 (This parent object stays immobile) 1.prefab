@@ -122,7 +122,7 @@ MonoBehaviour:
     m_Bits: 115
   rotationSpeed: 2
   speed: 0.5
-  limitWalkGroundAnglesDelta: 1
+  limitWalkGroundAnglesDelta: 0
   stopWhenAngleChangeIsDetected: 0
 --- !u!114 &3570162291688899322
 MonoBehaviour:
